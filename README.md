@@ -10,27 +10,27 @@ En la sección *Gameplay* se exploran conceptos relacionados con las mecánicas 
 
 ## Tabla de Contenidos
 ### I. Graphics Engine
-**Capítulo 1.** Introducción
-**Capítulo 2.** Proyección de Paredes
-**Capítulo 3.** Archivo de datos (YAML format). Texturas
-**Capítulo 4.** Texturas en paredes
-**Capítulo 5.** Texturas en suelo y techo. Paralaxing
-**Capítulo 6.** Player se mueve en eje Z, y puede mirar un poco arriba y un poco abajo
-**Capítulo 7.** Sectors. Portals. Viewport Occlusion Buffers. Cross Portal detection
-**Capítulo 8.** Stack. Sector over Sector
-**Capítulo 9.** Slopes
-**Capítulo 10.** Thing. Sprite Wall y Sprite Face
-**Capítulo 11.** Sprite Floor
-**Capítulo 12.** Sprite Voxel
-**Capítulo 13.** Animation System
-**Capítulo 14.** Particle System
-**Capítulo 15.** Light Maps
+**Capítulo 1.** Introducción<br>
+**Capítulo 2.** Proyección de Paredes<br>
+**Capítulo 3.** Archivo de datos (YAML format). Texturas<br>
+**Capítulo 4.** Texturas en paredes<br>
+**Capítulo 5.** Texturas en suelo y techo. Paralaxing<br>
+**Capítulo 6.** Player se mueve en eje Z, y puede mirar un poco arriba y un poco abajo<br>
+**Capítulo 7.** Sectors. Portals. Viewport Occlusion Buffers. Cross Portal detection<br>
+**Capítulo 8.** Stack. Sector over Sector<br>
+**Capítulo 9.** Slopes<br>
+**Capítulo 10.** Thing. Sprite Wall y Sprite Face<br>
+**Capítulo 11.** Sprite Floor<br>
+**Capítulo 12.** Sprite Voxel<br>
+**Capítulo 13.** Animation System<br>
+**Capítulo 14.** Particle System<br>
+**Capítulo 15.** Light Maps<br>
 ### III. Physics Engine
-**Capítulo 16.** Model
-**Capítulo 17.** Collision Detection
+**Capítulo 16.** Model<br>
+**Capítulo 17.** Collision Detection<br>
 ### III. Gameplay
-**Capítulo 18.** World Editor
-**Capítulo 19.** Event Driven Architecture
-**Capítulo 20.** Artificial Intelligence
+**Capítulo 18.** World Editor<br>
+**Capítulo 19.** Event Driven Architecture<br>
+**Capítulo 20.** Artificial Intelligence<br>
 ### IV. Network Connection
-**Capítulo 21.** Arquitectura Cliente Servidor
+**Capítulo 21.** Arquitectura Cliente Servidor<br>
