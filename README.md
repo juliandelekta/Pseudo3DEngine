@@ -10,8 +10,8 @@ En la sección *Gameplay* se exploran conceptos relacionados con las mecánicas 
 
 ## Tabla de Contenidos
 ### I. Graphics Engine
-**Capítulo 1.** Introducción<br>
-**Capítulo 2.** Proyección de Paredes<br>
+**Capítulo 1.** [Introducción](https://github.com/juliandelekta/Pseudo3DEngine/tree/main/chapter-01)<br>
+**Capítulo 2.** [Proyección de Paredes](https://github.com/juliandelekta/Pseudo3DEngine/tree/main/chapter-02)<br>
 **Capítulo 3.** Archivo de datos (YAML format). Texturas<br>
 **Capítulo 4.** Texturas en paredes<br>
 **Capítulo 5.** Texturas en suelo y techo. Paralaxing<br>
