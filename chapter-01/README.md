@@ -13,7 +13,7 @@ La siguiente lista detalla algunas de las características relacionadas a los gr
     - **Build Engine**: Motor gráfico del Duke Nukem 3D, Blood y Shadow Warrior. Es un *Portal Engine*.<br>
     - **Quake Engine**: Gráficos reales 3D. Light Maps.<br>
 Nuestro objetivo es hacer algo entre el Build Engine y el Quake Engine. Tomando como inspiración a los gráficos logrados por otros motores como el de TESII: Arena, Ultima Underworld y System Shock.<br>
-Tener en cuenta que aunque el motor esté centrado en videojuegos FPS, se pueden realizar trabajos interesante que incluyan gráficos 3D y Sprites. Ejemplo de esto serían remakes de videojuegos de la Game Boy (Color y Advance) aprovechando los gráficos retro pero añadiéndole una dimensión más.<br>
+Tener en cuenta que aunque el motor esté centrado en videojuegos FPS, se pueden realizar trabajos interesante que incluyan gráficos 3D y Sprites. Ejemplo de esto serían remakes de videojuegos de la Game Boy (Color y Advance) aprovechando los gráficos retro pero añadiéndole una dimensión más. Recomiendo ver los trabajos de [Thomas Norton](https://www.instagram.com/blueeyesnorton/).<br>
 Por último, se espera que el lector sea capaz de comprender algunos conceptos matemáticos de proyección, resultándole trivial una implementación similar a la del *Mode 7* de la SNES.
 
 ## Recursos de referencia

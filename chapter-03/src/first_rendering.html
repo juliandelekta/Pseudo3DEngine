@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sector Rotation Test</title>
+</head>
+<body style="background-color: black;">
+    <canvas id="canvas" style="image-rendering: pixelated;"></canvas>
+<script>
+
+const canvas = document.getElementById("canvas"),
+    canvasCtx = canvas.getContext("2d");
+canvas.width = 1024;
+canvas.height = 1024;
+canvas.style.width = 1024 + "px";
+canvas.style.height = 1024 + "px";
+
+const buffer = document.createElement("canvas"),
+    ctx = buffer.getContext("2d");
+buffer.width = 256; buffer.height = 256;
+const halfScreenWidth = 128,
+    screenWidth = 256;
+const WALL_HEIGHT = 16, FOV = Math.PI / 4;
+
+const walls = (() => {
+    const w1 = {x: 200, y: 20},
+        w2 = {x: 230, y: 140, next: w1},
+        w3 = {x: 128, y: 230, next: w2},
+        w4 = {x: 26, y: 140, next: w3},
+        w5 = {x: 86, y: 80, next: w4},
+        w6 = {x: 56, y: 20, next: w5};
+    w1.next = w6;
+    return [w1, w2, w3, w4, w5, w6];
+})();
+// Potentially Visible Walls
+const pvWalls = [];
+
+// Player coordinates
+let px = 128, py = 128, angle = 0;
+
+let inkey = {KeyW:0, KeyS:0, KeyA:0, KeyD:0};
+
+document.addEventListener("keydown", e => {inkey[e.code] = true});
+document.addEventListener("keyup", e => {inkey[e.code] = false});
+
+function drawWorldSpace(ctx) {
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, 256, 256);
+    ctx.beginPath();
+    ctx.moveTo(walls[0].x, walls[0].y);
+    for (let i = 1; i < walls.length; i++)
+        ctx.lineTo(walls[i].x, walls[i].y);
+    ctx.lineTo(walls[0].x, walls[0].y);
+    ctx.strokeStyle = "#fde311"; ctx.stroke();
+    ctx.strokeStyle = "#ddd"; ctx.beginPath();ctx.moveTo(px, py); ctx.lineTo(px + Math.cos(angle)*10, py + Math.sin(angle)*10); ctx.stroke();
+    ctx.fillStyle = "#fff"; ctx.fillRect(px-1,py-1,3,3);
+}
+
+function drawCameraSpace(ctx) {
+    const sin = Math.sin(angle),
+        cos = Math.cos(angle);
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, 256, 256);
+    ctx.strokeStyle = "#fde311";
+    ctx.beginPath();
+    for (const wall of walls) {
+        // Move to relative position
+        const x1 = wall.x - px,
+            y1 = wall.y - py,
+            x2 = wall.next.x - px,
+            y2 = wall.next.y - py;
+        // Rotate with rotation matrix
+        const xp1 = -x1 * sin + y1 * cos,
+            yp1 = -x1 * cos  -y1 * sin,
+            xp2 = -x2 * sin + y2 * cos,
+            yp2 = -x2 * cos -y2 * sin;
+        ctx.moveTo(xp1+128, yp1+128); ctx.lineTo(xp2+128, yp2+128);
+    }
+    ctx.stroke();
+    ctx.strokeStyle = "#ddd"; ctx.beginPath();ctx.moveTo(128, 128); ctx.lineTo(128, 128 - 10); ctx.stroke();
+    ctx.fillStyle = "#fff"; ctx.fillRect(128-1,128-1,3,3);
+}
+
+function drawWithFrustrumCulling(ctx) {
+    const sin = Math.sin(angle),
+        cos = Math.cos(angle);
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, 256, 256);
+    ctx.strokeStyle = "#fff";
+    ctx.beginPath();
+    ctx.moveTo(0,0);ctx.lineTo(256,256);ctx.stroke();
+    ctx.moveTo(0,256);ctx.lineTo(256,0);ctx.stroke();
+    ctx.strokeStyle = "#fde311";
+    ctx.beginPath();
+    for (const wall of walls) {
+        // Move to relative position
+        const x1 = wall.x - px,
+            y1 = wall.y - py,
+            x2 = wall.next.x - px,
+            y2 = wall.next.y - py;
+        // Rotate with rotation matrix
+        const xp1 = -y1 * cos + x1 * sin,
+            yp1 = x1 * cos + y1 * sin,
+            xp2 = -y2 * cos + x2 * sin,
+            yp2 = x2 * cos + y2 * sin;
+
+        const pvWall = {
+            screenSpace: [
+                {col: 0, dist: 0}, // Point of beggining
+                {col: 0, dist: 0}  // Endpoint
+            ]
+        };
+
+        let sx1 = xp1, sx2 = xp2;
+
+        // Frustum Culling and Screen Coordinates
+        if ((xp1*yp2- xp2*yp1) >= 0) continue;
+        if (xp1 >= -yp1){
+            if ((xp1 > yp1) || (yp1 == 0)) continue;
+            //Project the point onto screen and see in which column it belongs.
+            pvWall.screenSpace[0].col = halfScreenWidth - Math.floor(xp1 * halfScreenWidth / yp1) - 1;
+            if (xp1 >= 0)
+                pvWall.screenSpace[0].col++;   /* Fix for SIGNED divide */
+
+            if (pvWall.screenSpace[0].col >= screenWidth)
+                pvWall.screenSpace[0].col = screenWidth-1;
+            pvWall.screenSpace[0].dist = yp1;
+        } else {
+            if (xp2 < -yp2) continue;
+            pvWall.screenSpace[0].col = screenWidth-1;
+            pvWall.screenSpace[0].dist = (yp1*xp2 - xp1*yp2) / (xp2 - xp1 + yp2 - yp1);
+            sx1 = -pvWall.screenSpace[0].dist;
+        }
+        if (xp2 <= yp2){
+            if (yp2 == 0) continue;
+            pvWall.screenSpace[1].col = halfScreenWidth - Math.floor(xp2 * halfScreenWidth / yp2);
+            if (xp2 >= 0) pvWall.screenSpace[1].col++;   /* Fix for SIGNED divide */
+            if (pvWall.screenSpace[1].col >= screenWidth) pvWall.screenSpace[1].col = screenWidth-1;
+            pvWall.screenSpace[1].dist = yp2;
+        } else {
+            pvWall.screenSpace[1].col = 0;
+
+            pvWall.screenSpace[1].dist = (yp1*xp2 - xp1*yp2) / (xp2 - xp1 - yp2 + yp1);
+            sx2 = pvWall.screenSpace[1].dist;
+        }
+        ctx.moveTo(xp1 + 128, yp1 + 128); ctx.lineTo(xp2 + 128, yp2 + 128);
+        ctx.fillStyle = "#f00"; ctx.fillRect(sx1+125, pvWall.screenSpace[0].dist+125 , 3, 5);
+        ctx.fillStyle = "#0f0"; ctx.fillRect(sx2+127, pvWall.screenSpace[1].dist+125 , 3, 5);
+        pvWalls.push(pvWall);
+    }
+    ctx.stroke();
+    ctx.strokeStyle = "#ddd"; ctx.beginPath();ctx.moveTo(128, 128); ctx.lineTo(128, 128+10); ctx.stroke();
+    ctx.fillStyle = "#fff"; ctx.fillRect(128-1,128-1,3,3);
+}
+
+const rel = WALL_HEIGHT*(halfScreenWidth/Math.tan(FOV));
+function drawScreenSpace(ctx) {
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, 256, 256);
+    ctx.strokeStyle = "#000";
+    while (pvWalls.length) {
+        const w = pvWalls.pop();
+        ctx.fillStyle = "#fde311";
+        ctx.beginPath();
+        const h1 = rel / w.screenSpace[0].dist ,
+            h2 = rel / w.screenSpace[1].dist ;
+        ctx.moveTo(w.screenSpace[0].col, 128+h1);
+        ctx.lineTo(w.screenSpace[0].col, 128-h1);
+        ctx.lineTo(w.screenSpace[1].col, 128-h2);
+        ctx.lineTo(w.screenSpace[1].col, 128+h2);
+        ctx.lineTo(w.screenSpace[0].col, 128+h1);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(w.screenSpace[0].col, 128+h1);
+        ctx.lineTo(w.screenSpace[0].col, 128-h1);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(w.screenSpace[1].col, 128+h2);
+        ctx.lineTo(w.screenSpace[1].col, 128-h2);
+        ctx.stroke();
+    }
+}
+
+let lastTime = 0;
+
+(function update(time) {
+    const deltaTime = (time - lastTime) * 0.001;
+    lastTime = time;
+    canvasCtx.fillStyle = "#000";
+    canvasCtx.fillRect(0, 0, 1224, 1024);
+
+
+    // World Space
+    drawWorldSpace(ctx);
+    canvasCtx.drawImage(buffer, 50, 50);
+    canvasCtx.strokeStyle = "#66f";
+    canvasCtx.strokeRect(50, 50, 256, 256);
+
+
+    // Camera Space
+    drawCameraSpace(ctx);
+    canvasCtx.drawImage(buffer, 330, 50);
+    canvasCtx.strokeStyle = "#0f0";
+    canvasCtx.strokeRect(330, 50, 256, 256);
+
+    // With frustrum culling
+    drawWithFrustrumCulling(ctx);
+    canvasCtx.drawImage(buffer, 50, 330);
+    canvasCtx.strokeStyle = "#0f0";
+    canvasCtx.strokeRect(50, 330, 256, 256);
+
+    // Screen Space
+    drawScreenSpace(ctx);
+    canvasCtx.drawImage(buffer, 330, 330);
+    canvasCtx.strokeStyle = "#0ff";
+    canvasCtx.strokeRect(330, 330, 256, 256);
+
+
+    // Manage player input
+    const moveSpeed = deltaTime * 25 * (inkey.KeyW - inkey.KeyS),
+        rotationSpeed = deltaTime * 1.5 * (inkey.KeyD - inkey.KeyA);
+    px += Math.cos(angle) * moveSpeed;
+    py += Math.sin(angle) * moveSpeed;
+    angle += rotationSpeed;
+
+    requestAnimationFrame(update);
+
+})(0);
+
+</script>
+</body>
+</html>
