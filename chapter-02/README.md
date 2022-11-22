@@ -4,7 +4,9 @@ Para empezar a comprender las técnicas de renderización comenzaremos con un ej
 
 ## Definiciones
 Para comenzar, definimos el sistema de coordenadas a utilizar.
+
 ![Coordenadas](./img/coordenadas.png)
+
 Todas las distancias están medidas en **metros**.\
 Antes de profundizar en el algoritmo es necesario definir algunos conceptos.
 ### World
@@ -70,7 +72,9 @@ const Canvas = {
 ```
 ### Cámara
 La **cámara** (*Camera*) representa el punto de vista del jugador la cual se va a mover y rotar a medida que este lo haga. Todo aquel objeto que esté dentro del rango de visión de la cámara se proyectará sobre un plano 2D llamado **Plano de proyección** (*Projection Plane*). Este plano no es más que la Screen que definimos previamente.
+
 ![Camera](./img/camera.png)
+
 La cámara posee varios atributos que son interesantes de analizar:
 
 - **Posición:** Es un vector 3D que indica las coordenadas de la ubicación de la cámara en el mundo tridimensional.
@@ -337,6 +341,7 @@ const Views = {
 Transformación de World Space a Camera Space: **Traslación** y luego **Rotación**.\
 Traslación: pos' = pos - Camera.pos\
 Rotación: por medio de la matriz de rotación:
+
 $$R = 
  \begin{bmatrix}
   -dir_Y & dir_X \\
@@ -363,7 +368,9 @@ const Point = (x, y) => ({
 })
 ```
 A `xp` se lo multiplica por `Camera.FOVRelation` para aplicar el efecto del FOV a la transformación. Derivación:
+
 ![FOVRelation](./img/FOVRelation.png)
+
 Y a `Segment`:
 ```javascript
 const Segment = (x0, y0, x1, y1) => ({
@@ -444,7 +451,7 @@ const Views = {
 }
 ```
 ### Depth Space
-El siguiente espacio de transformación es el **Depth Space**. Las coordenadas tienen por nombre: *col* (de columna) y *depth* (relativo a la profundidad).\
+El siguiente espacio de transformación es el **Depth Space**. Las coordenadas tienen por nombre: *col* (de columna) y *depth* (relativo a la profundidad).
 #### Columna
 Empezamos por obtener la columna. La idea es deformar el "triángulo" que forma el FOV en un rectángulo, tal que el extremo izquierdo del FOV coincida con la columna 0, y que el extremo derecho del FOV coincida con el ancho de la pantalla. Expresado matemáticamente: deseamos que todo punto perteneciente a la recta y=-x sea col=0. Todo punto de la recta y=x sea col = width. Y que todo punto de x=0 sea col = width/2 (mitad de la pantalla).\
 Queremos:
@@ -481,7 +488,9 @@ const Point = (x, y) => ({
 El operador `~~` en JavaScript, es una doble *bitwise not* binario. Es un truco simple para redondear hacia abajo y evitar usar `Math.floor`.
 #### Frustum Culling
 Antes de poder proyectar los puntos de un segment al Depth Space es importante entender el **Frustum Culling**. Vea que las coordenadas col y depth deben dividir por *yp* para obtener el valor. Esto nos genera la restricción de que *yp* no puede valer 0. Para evitar que esto nos ocurra, debemos "cortar" el segment en el Camera Space si está muy cerca de la cámara. Entonces definimos el *Near Plane* como un plano perpendicular a la dirección de la cámara y se encuentra a poca distancia de la misma:
+
 ![Near Plane](./img/near_plane.png)
+
 Agregamos la propiedad a la `Camera`:
 ```javascript
 const Camera = {
@@ -575,7 +584,9 @@ const Views = {
 Llegamos a la parte final de este capítulo, donde dibujaremos efectivamente lo que ve la cámara.
 #### Proyección
 Con el Depth Space conseguimos la columna a la que pertenece el Punto, aún nos queda saber la posición Y en pantalla. La siguiente figura ilustra el problema.
+
 ![Proyección](./img/proyección.png)
+
 Siendo `hh` la mitad de la altura de la pantalla. `pz` es el valor de la coordenada z del punto. `z` corresponde a la cámara. `dp` es la distancia al plano de proyección (se calculó en una sección anterior). `-yp` es el valor de la coordenada del Camera Space. `py` es la proyección del punto en la pantalla.\
 Entonces simplemente $Y = hh - py$\
 Por relación de triángulos $\frac {py} {dp} = \frac {pz - z} {-yp}$. Despejamos `py` y recordando que $depth = \frac{1}{-yp}$, entonces podemos obtener la componente `Y`:
@@ -710,9 +721,11 @@ const Views = {
 **Nota**: Esta técnica de dibujar líneas verticales por cada columna para representar una pared es similar a la empleada en el algoritmo de *Ray Casting* presente en Wolfenstein 3D.
 ### Conclusión
 Una vez implementado todo el código el lector debería terminar con un resultado similar al siguiente:
+
 ![Resultado](./img/resultado.gif)
+
 El código se encuentra en [aquí](./src).\
-Tenga presente que todo el motor gráfico se basa en la simple idea de **proyectar** y luego **escanear** columna por columna para ver qué hay que **dibujar**.\
+Tenga presente que todo el motor gráfico se basa en la simple idea de **proyectar** y luego **escanear** columna por columna para ver qué hay que **dibujar**.
 
 Para recordar nuestra convención de coordenadas que se obtienen en cada proyección:
 
