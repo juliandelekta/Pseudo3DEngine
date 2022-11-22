@@ -1,0 +1,264 @@
+<html>
+    <head>
+        <title>Image to JSON format converter</title>
+        <style>
+:root {
+    --back: #332f35;
+    --front: #eaeaea;
+}
+img {
+    image-rendering: pixelated;
+}
+.upload {
+	color: var(--front);
+	background: var(--back);
+	border: 1px solid var(--back);
+	border-radius: 3px;
+	padding: 3px 6px;
+	margin: 3px;
+	float: left;
+	transition-duration: 0.2s;
+}
+.upload:hover{
+	cursor: pointer;
+	background: var(--front);
+	color: var(--back);
+}
+.image-tx{
+    box-shadow: 2px 2px 8px 0px;
+	width: 128px;
+	height: 128px;
+	margin: 3px;
+}
+.img-block {
+    float: left;
+    background: rgb(238, 238, 238);
+    margin: 2px;
+    text-align: center;
+    font-family: 'Courier New', Courier, monospace;
+    padding: 5px;
+}
+.img-block input {
+    border: none;
+    text-align: center;
+    background: none;
+}
+        </style>
+    </head>
+    <body>
+        <h1>Image to Texture Package converter</h1>   
+        <label class="upload">
+            <input type="file" id="imgUpload" multiple style="display:none">
+            +
+        </label>
+        <label class="upload">
+            <input type="file" id="importJS" style="display:none">
+            Import JS
+        </label>
+        <button class="upload" onclick="downloadJS()">Download JS</button><br><br>
+        <input type="text" id="packageName" value="images"><br>
+        Images Loaded: <span id="imageCount">0</span>
+        <div id="image"></div>
+        <script>
+const imgUpload = document.getElementById("imgUpload")
+const importJSElement  = document.getElementById("importJS")
+const imageCount  = document.getElementById("imageCount")
+
+const packageNameElement = document.getElementById("packageName")
+
+imgUpload      .addEventListener("change", e => [...e.target.files].forEach(addImage), false)
+importJSElement.addEventListener("change", e => importJS(e.target.files[0]), false)
+
+function addImage(file) {
+    // Verifica que el archivo sea una imagen
+    if (file.type && !file.type.startsWith('image/')) {
+        alert('File is not an image.', file.type, file)
+        return
+    }
+
+    const name = file.name.split(".")[0]
+
+    const reader = new FileReader()
+    
+    reader.addEventListener('load', e => addImageBlock(e.target.result, name))
+
+    reader.readAsDataURL(file)
+}
+
+function addImageBlock(src, name, add = true) {
+    const div = document.createElement("div")
+
+    const img = new Image()
+    img.src = src
+    img.onclick = () => TextureLoader.removeImage(img.raw.name)
+    img.onload = () => {
+        if (add) {
+            name = TextureLoader.uniqueName(name)
+            TextureLoader.addImage({name, w: img.width, h: img.height}, img)
+        }
+        img.className = "image-tx"
+
+        const inputName = document.createElement("input")
+        inputName.value = name
+        inputName.oninput = () => img.raw.name = inputName.value
+        div.appendChild(inputName)
+        div.appendChild(document.createElement("br"))
+        div.appendChild(img)
+        div.appendChild(document.createElement("br"))
+        const dim = document.createElement("span")
+        dim.innerText = img.width + "x" + img.height
+        div.appendChild(dim)
+        div.className = "img-block"
+        document.getElementById("image").appendChild(div)
+    }
+    return img
+}
+
+function downloadJS() {
+    const content = `TextureLoader.load("${packageNameElement.value}", ${TextureLoader.toJSON()})`
+	const a = document.createElement('a')
+	a.href = window.URL.createObjectURL(new Blob([content], {type: "text/plain"}))
+	a.download = packageNameElement.value + ".js"
+	a.click()
+}
+
+function importJS(file) {
+    const reader = new FileReader()
+    reader.addEventListener("load", e => {
+        (new Function(e.target.result))()
+    })
+    reader.readAsText(file)
+}
+
+const TextureLoader = {
+    canvas: document.createElement("canvas"),
+    raws: [],
+
+    init() {
+        this.ctx = this.canvas.getContext("2d", {willReadFrequently: true})
+    },
+
+    addImage(r, img) {
+        const raw = {
+            name: this.uniqueName(r.name),
+            w: Math.min(1024, r.w),
+            h: Math.min(1024, r.h),
+            data: []
+        }
+
+        this.canvas.width  = r.w
+        this.canvas.height = r.h
+        this.ctx.clearRect(0,0,1024,1024)
+        this.ctx.drawImage(img, 0, 0)
+
+        const data = this.ctx.getImageData(0, 0, raw.w, raw.h).data
+
+        // Img está almacenado en filas, raw en columnas (más optimizado)
+        // Esta parte del código se encarga de guardar la img en columnas
+        for (let x = 0; x < raw.w; x++)
+            for (let y = 0; y < raw.h; y++) {
+                const index = (y * raw.w + x) * 4
+                raw.data[raw.data.length] = data[index]
+                raw.data[raw.data.length] = data[index + 1]
+                raw.data[raw.data.length] = data[index + 2]
+                raw.data[raw.data.length] = data[index + 3]
+            }
+
+        img.raw = raw
+        raw.img = img
+
+        raw.dataURL = this.toDataURL(raw)
+
+        this.raws.push(raw)
+        imageCount.innerText = this.raws.length
+    },
+
+    addRaw(raw) {
+        raw.dataURL = raw.data
+        raw.name = this.uniqueName(raw.name)
+
+        const auxImg = new Image()
+        auxImg.src = 'data:image/png;base64,' + raw.data
+
+        auxImg.width  = raw.h
+        auxImg.height = raw.w
+        
+        auxImg.onload = () => {
+            this.canvas.width  = raw.w
+            this.canvas.height = raw.h
+
+            // Transpuesta
+            this.ctx.clearRect(0, 0, 1024, 1024)
+            this.ctx.save()
+                this.ctx.translate(raw.h * .5, raw.w * .5)
+                this.ctx.rotate(Math.PI / 2)
+                this.ctx.scale(1, -1)
+                this.ctx.translate(-raw.w * .5, -raw.h * .5)
+                this.ctx.drawImage(auxImg, 0, 0)
+            this.ctx.restore()
+
+            const img = addImageBlock(this.canvas.toDataURL(), raw.name, false)
+
+            img.raw = raw
+            raw.img = img
+            
+            this.raws.push(raw)
+            imageCount.innerText = this.raws.length
+        }
+    },
+
+    toDataURL(raw) {
+        const pixels = new Uint8ClampedArray(new ArrayBuffer(raw.data.length))
+
+        // Copy
+        for (let i = 0; i < raw.data.length; i++)
+            pixels[i] = raw.data[i]
+
+        this.canvas.width  = raw.h
+        this.canvas.height = raw.w
+        this.ctx.putImageData(new ImageData(pixels, raw.h, raw.w), 0, 0)
+        return this.canvas.toDataURL().slice(22)
+    },
+
+    load(packageName, json) {
+        packageNameElement.value = packageName
+
+        const raws = JSON.parse(json)
+
+        for (const raw of raws)
+            this.addRaw(raw)
+    },
+
+    removeImage(name) {
+        const [raw, i] = this.raws.map((x, i) => [x, i]).filter(x => x[0].name === name)[0]
+        this.raws.splice(i, 1)
+        document.getElementById("image").removeChild(raw.img.parentNode)
+        imageCount.innerText = this.raws.length
+    },
+
+    toJSON() {
+        return `\`[${this.raws.map(this.rawToJSON).join()}]\``
+    },
+
+    rawToJSON(raw) {
+        return `{"name":"${raw.name}","data":"${raw.dataURL}","w":${raw.w},"h":${raw.h}}`;
+    },
+
+    // Retorna un name que seguro no se encuentra entra la lista de imágenes cargadas
+    uniqueName(name) {
+        const same = this.raws.filter(r => r.name === name).length // Si hay algún raw con el mismo nombre
+
+        if (same) {
+            let count = 1
+            while (this.raws.filter(r => r.name === `${name}(${count})`).length) count++
+            name += `(${count})`
+        }
+
+        return name
+    }
+}
+
+TextureLoader.init()
+        </script>
+    </body>
+</html>

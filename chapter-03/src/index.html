@@ -2,11 +2,41 @@
 <html>
     <head>
         <meta charset="utf-8">
-        <title>Capítulo 1. Proyección de paredes</title>
-    </head>
-    <body style="background: black">
-        <h3 style="color: white">Capítulo 1. Proyección de paredes</h3>
-        <canvas id="canvas"></canvas>
+        <title>Capítulo 3. Texturas. Archivos de diseño</title>
+
+        <!-- JavaScript Files -->
         <script src="Graphics.js"></script>
+        <script src="Segment.js"></script>
+        <script src="Sector.js"></script>
+        <script src="Camera.js"></script>
+        <script src="Controls.js"></script>
+        <script src="Views.js"></script>
+        <script src="Viewport.js"></script>
+        <script src="walls/Wall.js"></script>
+        <script src="loaders/js-yaml.min.js"></script>
+        <script src="loaders/js-toml.js"></script>
+        <script src="loaders/TextureLoader.js"></script>
+        <script src="loaders/ResourceManager.js"></script>
+        <script src="loaders/Parser.js"></script>
+        <script src="loaders/Linker.js"></script>
+
+        <!-- Texture packages -->
+        <script src="assets/walls.js"></script>
+        
+        <!-- Levels Info -->
+        <!-- <script src="levels/first_level_yaml.js"></script> -->
+        <script src="levels/first_level_toml.js"></script>
+        <!-- <script src="levels/first_level_json.js"></script> -->
+
+    </head>
+    <body style="background: black; color: white; font-family: courier">
+        <h3>Capítulo 3. Texturas. Archivos de diseño</h3>
+        <canvas id="canvas" style="image-rendering: pixelated;"></canvas><br>
+        <label>
+            FOV
+            <input type="range"  min="10" max="180" value="90" id="FOVRange">
+            <span id="FOVValue">90°</span>
+        </label>
+        <script src="main.js"></script>
     </body>
 </html>
