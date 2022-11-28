@@ -24,13 +24,13 @@ En la sección *Gameplay* se exploran conceptos relacionados con las mecánicas 
 **Capítulo 12.** Sprite Voxel\
 **Capítulo 13.** Animation System\
 **Capítulo 14.** Particle System\
-**Capítulo 15.** Light Maps\
-### III. Physics Engine
+**Capítulo 15.** Light Maps
+### II. Physics Engine
 **Capítulo 16.** Model\
-**Capítulo 17.** Collision Detection\
+**Capítulo 17.** Collision Detection
 ### III. Gameplay
 **Capítulo 18.** World Editor\
 **Capítulo 19.** Event Driven Architecture\
-**Capítulo 20.** Artificial Intelligence\
+**Capítulo 20.** Artificial Intelligence
 ### IV. Network Connection
-**Capítulo 21.** Arquitectura Cliente Servidor\
+**Capítulo 21.** Arquitectura Cliente Servidor
