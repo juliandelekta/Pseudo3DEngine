@@ -152,7 +152,7 @@ const Renderer = {
 Para dibujar la textura correctamente dentro del área projectada de la wall se emplea un método llamado [Texture Mapping](https://en.wikipedia.org/wiki/Texture_mapping). Con este método vamos a partir de las coordenadas del píxel en pantalla y las vamos a mapear con el [Texel](https://en.wikipedia.org/wiki/Texel_(graphics)) de la textura. Un texel tiene coordenadas U y V que vamos a calcular individualmente.
 ### Obteniendo U
 Cuando dibujamos las paredes tuvimos en cuenta que a medida que estas se alejaban se veían más pequeñas en pantalla. Un efecto similar ocurre con las texturas. A medida que la pared se aleja de la pantalla, la textura se "comprime". La siguiente imagen ilustra el efecto:
-![Perspectiva](https://github.com/juliandelekta/Pseudo3DEngine/tree/main/chapter-04/img/perspective.png)
+![Perspectiva](https://github.com/juliandelekta/Pseudo3DEngine/blob/main/chapter-04/img/perspective.png)
 Para lograrlo se emplea una técnica llamada [Perspective Correct Interpolation](https://www.scratchapixel.com/lessons/3d-basic-rendering/rasterization-practical-implementation/perspective-correct-interpolation-vertex-attributes) que, a diferencia de una interpolación lineal, tiene en cuenta el factor Z (profundidad de pantalla).\
 De esta forma se puede obtener la fórmula que expresa el valor de U:
 $$U = \frac{U_0 \times Z_0^{-1} + (U_1 \times Z_1^{-1} - U_0 \times Z_0^{-1}) \Delta x}{Z_0^{-1} + (Z_1^{-1} - Z_0^{-1}) \Delta x}$$
@@ -283,5 +283,5 @@ Cuando enviamos a cargar un paquete de texturas al TextureLoader se cargan una a
 Adicionalmente, se agregó un contador de FPS que vamos a asegurarnos de ahora en más que siempre esté cercano a los 60FPS.
 ## Conclusión
 El resultado debería verse como el siguiente:
-![Chapter-04](https://github.com/juliandelekta/Pseudo3DEngine/tree/main/chapter-04/img/chapter-04.gif)
+![Chapter-04](https://github.com/juliandelekta/Pseudo3DEngine/blob/main/chapter-04/img/chapter-04.gif)
 Para tener una idea intuitiva de lo que está ocurriendo en pantalla, recomiendo variar algunos parámetros o fórmulas. También recomiendo editar el archivo de nivel y agregar nuevas texturas.
