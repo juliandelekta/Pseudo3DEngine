@@ -14,8 +14,8 @@ const Flat = {
         const dirX = (Camera.left.x + Camera.delta.x * viewport.x) * w,
               dirY = (Camera.left.y + Camera.delta.y * viewport.x) * h;
 
-		for (let y = this.y0; y < this.y1; y++) {
-			const rowDistance = distanceRelation / (y - Camera.center)
+        for (let y = this.y0; y < this.y1; y++) {
+		    const rowDistance = distanceRelation / (y - Camera.center)
 
             const u = (offU + rowDistance * dirX) & (texture.w - 1),
                   v = (offV + rowDistance * dirY) & (texture.h - 1);
@@ -26,7 +26,7 @@ const Flat = {
             Renderer.column[Y]   = texture.data[i]
             Renderer.column[Y+1] = texture.data[i+1]
             Renderer.column[Y+2] = texture.data[i+2]
-		}
+        }
     },
 
     drawParallax(viewport) {

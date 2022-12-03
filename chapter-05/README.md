@@ -127,7 +127,7 @@ const Camera = {
 
         this.delta.x = 2 * planeX / Renderer.width
         this.delta.y = 2 * planeY / Renderer.width
-	}
+    }
 }
 ```
 Notar que adicionalmente agregamos una propiedad llamada `center` que indica la mitad de la pantalla en píxeles.
@@ -182,8 +182,8 @@ const Flat = {
         
         - Inicialización de variables
 
-		for (let y = this.y0; y < this.y1; y++) {
-			- Obtenemos U y V
+        for (let y = this.y0; y < this.y1; y++) {
+            - Obtenemos U y V
 
             const Y = y << 2
             const i = (u * texture.h + v) << 2
@@ -191,7 +191,7 @@ const Flat = {
             Renderer.column[Y]   = texture.data[i]
             Renderer.column[Y+1] = texture.data[i+1]
             Renderer.column[Y+2] = texture.data[i+2]
-		}
+        }
     }
 }
 ```
@@ -249,8 +249,8 @@ const Flat = {
         const dirX = (Camera.left.x + Camera.delta.x * viewport.x) * w,
               dirY = (Camera.left.y + Camera.delta.y * viewport.x) * h;
 
-		for (let y = this.y0; y < this.y1; y++) {
-			const rowDistance = distanceRelation / (y - Camera.center)
+        for (let y = this.y0; y < this.y1; y++) {
+            const rowDistance = distanceRelation / (y - Camera.center)
 
             const u = (texture.offU + rowDistance * dirX) & (texture.w - 1),
                   v = (texture.offV + rowDistance * dirY) & (texture.h - 1);
@@ -261,7 +261,7 @@ const Flat = {
             Renderer.column[Y]   = texture.data[i]
             Renderer.column[Y+1] = texture.data[i+1]
             Renderer.column[Y+2] = texture.data[i+2]
-		}
+        }
     }
 }
 ```
