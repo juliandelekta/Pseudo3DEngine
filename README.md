@@ -10,12 +10,12 @@ En la sección *Gameplay* se exploran conceptos relacionados con las mecánicas 
 
 ## Tabla de Contenidos
 ### I. Graphics Engine
-**Capítulo 1.** [Introducción](https://github.com/juliandelekta/Pseudo3DEngine/tree/main/chapter-01)\
-**Capítulo 2.** [Proyección de Paredes](https://github.com/juliandelekta/Pseudo3DEngine/tree/main/chapter-02)\
-**Capítulo 3.** [Texturas. Archivos de diseño](https://github.com/juliandelekta/Pseudo3DEngine/tree/main/chapter-03)\
-**Capítulo 4.** [Texturas en paredes](https://github.com/juliandelekta/Pseudo3DEngine/tree/main/chapter-04)\
-**Capítulo 5.** [Texturas en suelo y techo. Parallax](https://github.com/juliandelekta/Pseudo3DEngine/tree/main/chapter-05)\
-**Capítulo 6.** Player se mueve en eje Z, y puede mirar un poco arriba y un poco abajo\
+**Capítulo 1.** [Introducción](./chapter-01)\
+**Capítulo 2.** [Proyección de Paredes](./chapter-02)\
+**Capítulo 3.** [Texturas. Archivos de diseño](./chapter-03)\
+**Capítulo 4.** [Texturas en paredes](./chapter-04)\
+**Capítulo 5.** [Texturas en suelo y techo. Parallax](./chapter-05)\
+**Capítulo 6.** [Movimiento en Z. Movimiento vertical de cámara](./chapter-06)\
 **Capítulo 7.** Sectors. Portals. Viewport Occlusion Buffers. Cross Portal detection\
 **Capítulo 8.** Stack. Sector over Sector\
 **Capítulo 9.** Slopes\
