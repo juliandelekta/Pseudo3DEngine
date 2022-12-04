@@ -1,5 +1,6 @@
 # **Capítulo 2.** Proyección de Paredes
- 
+ > *Código fuente*: [Source](./src) 
+
 Para empezar a comprender las técnicas de renderización comenzaremos con un ejemplo básico, dibujaremos paredes 2D con perspectiva 3D vistas desde una primera persona. Esta técnica tiene sus limitaciones, las paredes siempre van a estar a 90° con respecto al suelo. En los sucesivos capítulos iremos agregando características al motor.
 
 ## Definiciones

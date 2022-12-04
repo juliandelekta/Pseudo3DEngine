@@ -1,4 +1,6 @@
 # **Capítulo 4.** Texturas en paredes
+> *Código fuente*: [Source](./src) 
+
 En este capítulo vamos a dibujar las paredes con las texturas que hemos cargado. A diferencia del capítulo anterior, no utilizaremos funciones de la Canvas API para dibujar. Nosotros vamos a colorear píxel a píxel empleando algunas técnicas para incrementar el rendimiento.
 
 ## Matriz de Píxeles

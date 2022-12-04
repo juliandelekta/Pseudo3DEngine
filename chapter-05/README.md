@@ -1,4 +1,6 @@
 # **Capítulo 5.** Texturas en suelo y techo. Parallax
+> *Código fuente*: [Source](./src) 
+
 En este capítulo vamos a ver cómo agregar la textura del suelo y el techo en el archivo de disñeo. Luego realizaremos el mapeo de la textura creando varias clases adicionales. Por último, agregaremos el efecto de Parallax que sirve para simular exteriores y otros efectos.\
 Tanto al techo como al suelo los vamos a englobar en un único concepto: el `Flat`. El mismo, hace referencia a una superficie plana.
 

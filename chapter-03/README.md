@@ -1,4 +1,6 @@
 # **Capítulo 3.** Texturas. Archivos de diseño
+> *Código fuente*: [Source](./src) 
+
 En el capítulo anterior logramos dibujar paredes pero de un único color sólido. En muchos casos puede llegar a ser suficiente pero para el engine nos interesa darle una textura con una imagen. Otra limitación existente hasta ahora es que las paredes tienen una posición definida en el código. Realmente resultaría cómodo que exista un archivo de diseño donde se indiquen detalles de interés de un nivel. De esta forma, un diseñador de niveles solo tendría que configurar este archivo sin tener que involucrarse en el código. Otro beneficio de tener archivos de diseño es su portabilidad: el día de mañana el engine puede estar ejecutándose en otra plataforma con otro lenguaje pero el archivo de diseño sigue siendo el mismo.\
 En este capítulo introduciremos las *Texturas*, cómo cargarlas y usarlas dentro del engine. También vamos a ver una herramienta que nos permite crear paquetes de texturas. Por último, explicaremos el formato a utilizar en los archivos de diseño.
 ## Texturas

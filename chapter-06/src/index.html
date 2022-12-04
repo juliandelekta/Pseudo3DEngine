@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Capítulo 6. Movimiento en Z. Movimiento vertical de cámara</title>
+
+        <!-- JavaScript Files -->
+        <script src="Viewport.js"></script>
+        <script src="Renderer.js"></script>
+        <script src="Segment.js"></script>
+        <script src="Sector.js"></script>
+        <script src="Camera.js"></script>
+        <script src="Controls.js"></script>
+        <script src="walls/Wall.js"></script>
+        <script src="flats/Flat.js"></script>
+        <script src="flats/Floor.js"></script>
+        <script src="flats/Ceiling.js"></script>
+        <script src="loaders/js-yaml.min.js"></script>
+        <script src="loaders/js-toml.js"></script>
+        <script src="loaders/TextureLoader.js"></script>
+        <script src="loaders/ResourceManager.js"></script>
+        <script src="loaders/Parser.js"></script>
+        <script src="loaders/Linker.js"></script>
+
+        <!-- Texture packages -->
+        <script src="assets/textures.js"></script>
+        
+        <!-- Levels Info -->
+        <script src="levels/first_level_toml.js"></script>
+
+    </head>
+    <body style="background: black; color: white; font-family: courier; text-align:center">
+        <h3>Capítulo 6. Movimiento en Z. Movimiento vertical de cámara</h3>
+        <div id="fps" style="position: absolute; right: 50px; top: 10px; background-color: black;color:white"></div>
+        <canvas id="canvas" style="image-rendering: pixelated;"></canvas><br>
+        <label>
+            FOV
+            <input type="range"  min="10" max="180" value="90" id="FOVRange">
+            <span id="FOVValue">90°</span>
+        </label>
+        <script src="main.js"></script>
+    </body>
+</html>
