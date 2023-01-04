@@ -32,43 +32,38 @@ const Sector = () => ({
     segments: []
 })
 ```
-### Pantalla y Lienzo
-En cuanto al espacio de renderización, es decir, el área de dibujo, debemos definir dos términos: la **Pantalla** (*Screen*) y el **Lienzo** (*Canvas*).\
-La Screen va a contener todos los píxeles de la proyección 3D que realizaremos desde el punto de vista del jugador. Adicionalmente, establece la resolución de renderización que en principio será de 320x200 que es la misma que tiene *Doom Vanilla*.\
-Por otro lado, el Canvas hace referencia al elemento HTML en el cual se va a dibujar la Screen. Utilizaremos la interfaz CanvasRenderingContext2D del canvas, es decir que no emplearemos OpenGL.\
-Sobre el Canvas vamos a dibujar 4 "vistas" de 320x200, es por ello que necesitamos una resolución que sea el doble de la Screen.
+### Renderer
+En cuanto al espacio de renderización, vamos a definir el objeto `Renderer`. Este va a contener todos los píxeles de la proyección 3D que realizaremos desde el punto de vista del jugador. Establece la resolución de la pantalla que en principio será de 320x200 al igual que *Doom Vanilla*.\
+El Renderer necesita conocer el elemento HTML del canvas sobre el cual se va a dibujar la pantalla. Por ello es necesario compartirle la referencia al elemento durante su inicialización.\
+Para el contexto del canvas utilizaremos la interfaz CanvasRenderingContext2D, es decir que no emplearemos OpenGL.\
+Sobre el Canvas vamos a dibujar 4 "vistas" de 320x200, es por ello que necesitamos una resolución que sea el doble de la indicada. El cuerpo de `Renderer.js` es:
 ```javascript
-/* --- Graphics.js --- */
-const Screen = {
+const Renderer = {
     width:  320, // px
     height: 200, // px
-    ctx: null,   // Sobre este context vamos a dibujar lo que ve el jugador
-}
-
-const Canvas = {
+    
     init(canvas) {
         // DOM Elements
         this.canvas = canvas
-        this.buffer = document.createElement("canvas")
-      
+        this.buffer = document.createElement("canvas") // Doble buffering
+
         // Resolutions
-        const w = Screen.width  * 2
-        const h = Screen.height * 2
-		this.canvas.width  = w
-        this.canvas.height = h
-		canvas.style.width  = w + "px"
-        canvas.style.height = h + "px"
-        this.buffer.width  = Screen.width
-		this.buffer.height = Screen.height
-      
+		canvas.width  = this.width  * 2
+        canvas.height = this.height * 2
+		canvas.style.width  = canvas.width  + "px"
+        canvas.style.height = canvas.height + "px"
+        
+        this.buffer.width  = this.width
+        this.buffer.height = this.height
+
         // Contexts
-        this.ctx   = this.canvas.getContext("2d")
-        Screen.ctx = this.buffer.getContext("2d")
+        this.ctx  = this.canvas.getContext("2d")
+        this.bctx = this.buffer.getContext("2d")
     },
-  
-  draw() {
-      this.ctx.drawImage(this.buffer, Screen.width, Screen.height)
-  }
+
+    draw() {
+        this.ctx.drawImage(this.buffer, this.width, this.height)
+    }
 }
 ```
 ### Cámara
@@ -102,7 +97,7 @@ const Camera = {
         this.FOV = FOV
         this.tanFOV = Math.tan(FOV / 2)
         this.FOVRelation = 1 / this.tanFOV
-        this.dp = (Screen.width / 2) / this.tanFOV
+        this.dp = (Renderer.width / 2) / this.tanFOV
     }
 }
 ```
@@ -116,7 +111,7 @@ Una vez definidas las primeras clases a utilizar a continuación pasaremos a dib
         <title>Capítulo 2. Proyección de paredes</title>
 
         <!-- JavaScript Files -->
-        <script src="Graphics.js"></script>
+        <script src="Renderer.js"></script>
         <script src="Segment.js"></script>
         <script src="Sector.js"></script>
         <script src="Camera.js"></script>
@@ -172,7 +167,7 @@ Camera.pos.y = 13
 
 
 // Iniciamos el Canvas
-Canvas.init(document.getElementById("canvas"))
+Renderer.init(document.getElementById("canvas"))
 
 // Iniciamos los Controles
 Controls.init()
@@ -197,22 +192,22 @@ range.addEventListener("input", () => {
 });
 ```
 ### Vistas
-Para entender las distintas proyecciones que van sufriendo los segments hasta aparecer en pantalla vamos a dibujar 4 "vistas": **World Space**, **Camera Space**, **Frustum Culling** y **Screen Space**. Para ayudarnos a organizar creamos un nuevo archivo: `Views.js`.
+Para entender las distintas proyecciones por las que transitan los segments hasta aparecer en pantalla vamos a dibujar 4 "vistas": **World Space**, **Camera Space**, **Frustum Culling** y **Screen Space**. Para ayudarnos a organizar creamos un nuevo archivo: `Views.js`.
 ```javascript
 const Views = {
     scale: 10,
     init () {
         this.canvas = document.createElement("canvas")
         this.ctx = this.canvas.getContext("2d")
-        this.canvas.width  = Screen.width
-        this.canvas.height = Screen.height
+        this.canvas.width  = Renderer.width
+        this.canvas.height = Renderer.height
     },
 
     clean() {
         this.ctx.fillStyle = "black"
-        this.ctx.fillRect(0, 0, Screen.width, Screen.height)
+        this.ctx.fillRect(0, 0, Renderer.width, Renderer.height)
         Screen.ctx.fillStyle = "black"
-        Screen.ctx.fillRect(0, 0, Screen.width, Screen.height)
+        Screen.ctx.fillRect(0, 0, Renderer.width, Renderer.height)
     },
 
     worldSpace() {
@@ -231,12 +226,6 @@ const Views = {
         this.clean()
         const ctx = this.ctx
         ...
-    },
-
-    screenSpace() {
-        this.clean()
-        const ctx = Screen.ctx
-        ...
     }
 }
 ```
@@ -249,9 +238,9 @@ Lo importamos en nuestro HTML:
         <script src="Views.js"></script>
 ...
 ```
-Por último, modificamos el Canvas en nuestro  `Graphics.js`:
+Luego, modificamos el `Renderer` para llamar a estas funciones:
 ```javascript
-const Canvas = {
+const Renderer = {
     init(canvas) {
         . . .
         Views.init()
@@ -260,10 +249,10 @@ const Canvas = {
     drawLimits() {
         this.ctx.strokeStyle = "#0ff"
         this.ctx.beginPath()
-            this.ctx.moveTo(Screen.width, 0)
-            this.ctx.lineTo(Screen.width, this.h)
-            this.ctx.moveTo(0, Screen.height)
-            this.ctx.lineTo(this.w, Screen.height)
+            this.ctx.moveTo(this.width, 0)
+            this.ctx.lineTo(this.width, this.height * 2)
+            this.ctx.moveTo(0, this.height)
+            this.ctx.lineTo(this.width * 2, this.height)
         this.ctx.stroke()
     },
 
@@ -274,15 +263,15 @@ const Canvas = {
 
         // Camera Space
         Views.cameraSpace()
-        this.ctx.drawImage(Views.canvas, Screen.width, 0)
+        this.ctx.drawImage(Views.canvas, this.width, 0)
 
         // Depth Space
         Views.depthSpace()
-        this.ctx.drawImage(Views.canvas, 0, Screen.height)
+        this.ctx.drawImage(Views.canvas, 0, this.height)
 
         // Screen Space
-        Views.screenSpace()
-        this.ctx.drawImage(this.buffer, Screen.width, Screen.height)
+        
+        this.ctx.drawImage(this.buffer, this.width, this.height)
 
         this.drawLimits()
     }
@@ -398,7 +387,7 @@ En `main` vamos a llamar al *project* del sector principal antes de enviar a dib
 (function update(time) {
     . . .
     mainSector.project()
-    Canvas.draw()
+    Renderer.draw()
     . . .
 })(0)
 ```
@@ -410,8 +399,8 @@ const Views = {
         this.clean()
         const ctx = this.ctx
         const l = this.scale
-        const px = Screen.width  / 2
-        const py = Screen.height / 2 + 60
+        const px = Renderer.width  / 2
+        const py = Renderer.height / 2 + 60
 
         // Dibujar segmento por segmento
         for (const s of mainSector.segments) {
@@ -481,12 +470,12 @@ Agregamos la nueva proyección a `Point`:
 const Point = (x, y) => ({
     . . .
     toDepthSpace() {
-        this.col = Screen.width * .5 * ~~(1 + this.xp / this.yp)
+        this.col = Renderer.width * .5 * (1 - this.xp / this.yp)
         this.depth = - 1 / this.yp
     }
 })
 ```
-El operador `~~` en JavaScript, es una doble *bitwise not* binario. Es un truco simple para redondear hacia abajo y evitar usar `Math.floor`.
+
 #### Frustum Culling
 Antes de poder proyectar los puntos de un segment al Depth Space es importante entender el **Frustum Culling**. Vea que las coordenadas col y depth deben dividir por *yp* para obtener el valor. Esto nos genera la restricción de que *yp* no puede valer 0. Para evitar que esto nos ocurra, debemos "cortar" el segment en el Camera Space si está muy cerca de la cámara. Entonces definimos el *Near Plane* como un plano perpendicular a la dirección de la cámara y se encuentra a poca distancia de la misma:
 
@@ -599,8 +588,8 @@ Agregamos la proyección a Screen Space a `Point` y `Segment`. Adicionalmente, e
 const Point = (x, y) => ({
     . . .
     toScreenSpace(topZ, bottomZ) {
-        this.top    = Screen.height * .5 - (topZ    - Camera.pos.z) * Camera.dp * this.depth
-        this.bottom = Screen.height * .5 - (bottomZ - Camera.pos.z) * Camera.dp * this.depth
+        this.top    = Renderer.height * .5 - (topZ    - Camera.pos.z) * Camera.dp * this.depth
+        this.bottom = Renderer.height * .5 - (bottomZ - Camera.pos.z) * Camera.dp * this.depth
     }
 })
 
@@ -645,13 +634,15 @@ Tiene dos *buffers* principales cuya logitud son las columnas a de la Screen:
 - **Closest**: indica qué Segment está más cerca de la cámara para una determinada columna.
 - **Depth**: almacena el depth más grande (más cercano a la cámara) para cada columna.
 
+Como todo objeto renderizable, Viewport necesita una función de proyectar (*project*) y una para renderizar (*draw*).\
+Creamos `Viewport.js` y en su función `draw` dibuja los segments. Por cada columna de la pantalla vemos cuál es el Segment que está más cerca y dibujamos una línea vertical desde el Top hasta el Bottom. Para ello, el Viewport debe saber qué columna está dibujando, la cual se guarda en su variable interna `x`.
 
-Creamos `Viewport.js`:
+**Nota**: Esta técnica de dibujar líneas verticales por cada columna para representar una pared es similar a la empleada en el algoritmo de *Ray Casting* presente en Wolfenstein 3D.
 ```javascript
-const Viewport = () => ({
+const Viewport = (width) => ({
     // Buffers con información de cada columna
-    closest: new Array(Screen.width),
-    depth:   new Array(Screen.width).fill(0),
+    closest: new Array(width),
+    depth:   new Array(width).fill(0),
 
     loadBuffers() {
         // Limpia el depth buffer
@@ -659,11 +650,13 @@ const Viewport = () => ({
 
         for (const s of this.sector.visibles) {
 
-            const from = Math.max(0, Math.min(Screen.width - 1, s.p0.col))
-            const to   = Math.max(0, Math.min(Screen.width - 1, s.p1.col))
+            let from = Math.max(~~(s.p0.col + 1), 0),
+                to   = Math.min(~~s.p1.col, width - 1)
 
-            for (let c = from; c <= to; c++) {
-                const d = s.getDepthAt(c)
+			// Interpolación lineal de 'depth'
+            const dd = (s.p1.depth - s.p0.depth) / (s.p1.col - s.p0.col)
+            let d = (from - s.p0.col) * dd + s.p0.depth
+            for (let c = from; c <= to; c++, d+=dd) {
                 if (d > this.depth[c]) {
                     this.closest[c] = s
                     this.depth[c] = d
@@ -671,61 +664,69 @@ const Viewport = () => ({
             }
         }
     },
+    
+    project() {
+        this.sector.project()
+        this.loadBuffers()
+    },
+    
+    draw(ctx) {
+        const segment = this.closest[this.x]
+        if (segment) {
+            ctx.strokeStyle = segment.color
+            ctx.beginPath()
+                ctx.moveTo(this.x, ~~(segment.getTopAt(this.x)))
+                ctx.lineTo(this.x, ~~(segment.getBottomAt(this.x)))
+            ctx.stroke()
+        }
+    }
 
 })
 ```
-En `main.js` creamos un Viewport principal que siempre va a estar asociado al Sector de la cámara. Este Viewport es el primero que se dibuja y desde el cuál van a surgir los demás.\
+El operador `~~` en JavaScript, es una doble *bitwise not* binario. Es un truco simple para redondear hacia abajo y evitar usar `Math.floor`. Por otro lado en el cálculo de `from` se suma 1 para lograr el efecto de `Math.ceil`. \
+En `Renderer.js` creamos un Viewport principal que siempre va a estar asociado al Sector de la cámara. Este Viewport es el primero que se dibuja y desde el cuál van a surgir los demás.\
 Creamos el mainViewport y le asociamos el mainSector.\
 Adicionalmente, una vez que proyectemos el Sector debemos llamar a `loadBuffers`
 ```javascript
+const Renderer = {    
+    init(canvas) {
+        . . .
+        // Viewport
+        this.MainViewport = Viewport(this.width)
+        
+        Views.init()
+    },
+  
+    draw() {
+    	this.MainViewport.project()
+		. . .
+        // Screen Space
+        this.MainViewport.x = 0
+        while(this.MainViewport.x < this.width) {
+            this.MainViewport.draw(this.bctx)
+            this.MainViewport.x++
+        }
+        this.ctx.drawImage(this.buffer, this.width, this.height)
+
+        this.drawLimits()
+    }
+}
+```
+```javascript
+/* --- main.js --- */
 . . .
   Segment( 9,  8,  6,  2)
 )
 
-// Creamos el Main Viewport
-const mainViewport = Viewport()
-mainViewport.sector = mainSector
+Renderer.MainViewport.sector = mainSector
 . . .
-
-// Main Loop
-(function update(time) {
-    . . .
-    mainSector.project()
-    mainViewport.loadBuffers()
-    Canvas.draw()
-
-    requestAnimationFrame(update)
-})(0)
 ```
-### View
-En `Views` completamos la función. Por cada columna de la pantalla vemos cuál es el Segment que está más cerca y dibujamos una línea vertical desde el Top hasta el Bottom.
-```javascript
-const Views = {
-    . . . 
-    screenSpace() {
-        this.clean()
-        const ctx = Screen.ctx
 
-        // Dibujar columna por columna
-        for (let x = 0; x < Screen.width; x++) {
-            const s = mainViewport.closest[x]
-            if (!s) continue
-            ctx.strokeStyle = s.color
-            ctx.beginPath()
-                ctx.moveTo(x, ~~(s.getTopAt(x)))
-                ctx.lineTo(x, ~~(s.getBottomAt(x)))
-            ctx.stroke()
-        }
-    }
-}
-```
-**Nota**: Esta técnica de dibujar líneas verticales por cada columna para representar una pared es similar a la empleada en el algoritmo de *Ray Casting* presente en Wolfenstein 3D.
 ### Conclusión
 Una vez implementado todo el código el lector debería terminar con un resultado similar al siguiente:
 
 ![Resultado](./img/resultado.gif)
 
-El código se encuentra en [aquí](./src).\
 Tenga presente que todo el motor gráfico se basa en la simple idea de **proyectar** y luego **escanear** columna por columna para ver qué hay que **dibujar**.
 
 Para recordar nuestra convención de coordenadas que se obtienen en cada proyección:

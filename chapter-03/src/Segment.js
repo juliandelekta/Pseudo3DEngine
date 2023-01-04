@@ -9,13 +9,13 @@ const Point = (x, y) => ({
     },
 
     toDepthSpace() {
-        this.col = ~~(Screen.width * .5 * (1 - this.xp / this.yp))
+        this.col = Renderer.width * .5 * (1 - this.xp / this.yp)
         this.depth = - 1 / this.yp
     },
 
     toScreenSpace(topZ, bottomZ) {
-        this.top    = Screen.height * .5 - (topZ    - Camera.pos.z) * Camera.dp * this.depth
-        this.bottom = Screen.height * .5 - (bottomZ - Camera.pos.z) * Camera.dp * this.depth
+        this.top    = Renderer.height * .5 - (topZ    - Camera.pos.z) * Camera.dp * this.depth
+        this.bottom = Renderer.height * .5 - (bottomZ - Camera.pos.z) * Camera.dp * this.depth
     }
 })
 
@@ -51,7 +51,7 @@ const Segment = (x0, y0, x1, y1) => ({
         this.p1.toDepthSpace()
 
         // Verifica si el segment proyectado está dentro de los límites de la pantalla y el mismo esté orientado hacia la cámara
-        return (this.p0.col < Screen.width) &&
+        return (this.p0.col < Renderer.width) &&
                (this.p1.col >= 0) &&
                (this.p0.col < this.p1.col)
 	},

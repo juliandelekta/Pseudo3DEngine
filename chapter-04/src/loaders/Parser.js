@@ -14,11 +14,11 @@ const Parser = {
         const sector = Sector(name)
 
         if (info.floor) {
-            sector.floor.z = info.floor.z || 0
+            sector.floor.z = isNaN(info.floor.z) ? 0 : info.floor.z
         }
 
         if (info.ceiling) {
-            sector.ceiling.z = info.ceiling.z || 0
+            sector.ceiling.z = isNaN(info.ceiling.z) ? 2 : info.ceiling.z
         }
 
         if (info.loops) {

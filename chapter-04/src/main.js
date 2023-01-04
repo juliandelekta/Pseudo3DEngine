@@ -10,16 +10,20 @@ Controls.init()
 
 // Iniciamos los Loaders
 TextureLoader.init()
+TextureLoader.onReady = () => {
+    // Cargamos el nivel
+    if(ResourceManager.setLevel("first_level"))
+        update(0)
+}
+
+window.onload = () => TextureLoader.makeTextures()
 
 // Controlamos el Range para el FOV
 const range = document.getElementById("FOVRange")
 range.addEventListener("input", () => {
     Camera.setFOV(range.value * Math.PI / 180)
     document.getElementById("FOVValue").innerText = range.value + "°"
-});
-
-// Cargamos el nivel
-ResourceManager.setLevel("first_level")
+})
 
 const FPS = {
     values: [60, 60, 60, 60],
@@ -51,8 +55,4 @@ function update(time) {
     Renderer.draw()
 
     requestAnimationFrame(update)
-}
-
-TextureLoader.onReady = () => {
-    update(0)
 }

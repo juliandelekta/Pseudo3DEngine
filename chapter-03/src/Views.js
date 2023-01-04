@@ -3,15 +3,15 @@ const Views = {
     init () {
         this.canvas = document.createElement("canvas")
         this.ctx = this.canvas.getContext("2d")
-        this.canvas.width  = Screen.width
-        this.canvas.height = Screen.height
+        this.canvas.width  = Renderer.width
+        this.canvas.height = Renderer.height
     },
 
     clean() {
         this.ctx.fillStyle = "black"
-        this.ctx.fillRect(0, 0, Screen.width, Screen.height)
-        Screen.ctx.fillStyle = "black"
-        Screen.ctx.fillRect(0, 0, Screen.width, Screen.height)
+        this.ctx.fillRect(0, 0, Renderer.width, Renderer.height)
+        Renderer.bctx.fillStyle = "black"
+        Renderer.bctx.fillRect(0, 0, Renderer.width, Renderer.height)
     },
 
     worldSpace() {
@@ -20,7 +20,7 @@ const Views = {
         const l = this.scale
 
         // Dibujar segmento por segmento
-        for (const s of mainViewport.sector.segments) {
+        for (const s of Renderer.MainViewport.sector.segments) {
             ctx.strokeStyle = s.color
             ctx.beginPath()
                 ctx.moveTo(s.p0.x * l, s.p0.y * l)
@@ -61,11 +61,11 @@ const Views = {
         this.clean()
         const ctx = this.ctx
         const l = this.scale
-        const px = Screen.width  / 2
-        const py = Screen.height / 2 + 60
+        const px = Renderer.width  / 2
+        const py = Renderer.height / 2 + 60
 
         // Dibujar segmento por segmento
-        for (const s of mainViewport.sector.visibles) {
+        for (const s of Renderer.MainViewport.sector.visibles) {
             ctx.strokeStyle = s.color
             ctx.beginPath()
                 ctx.moveTo(s.p0.xp * l + px, s.p0.yp * l + py)
@@ -107,27 +107,11 @@ const Views = {
         const offset = 60
 
         // Dibujar segmento por segmento
-        for (const s of mainViewport.sector.visibles) {
+        for (const s of Renderer.MainViewport.sector.visibles) {
             ctx.strokeStyle = s.color
             ctx.beginPath()
                 ctx.moveTo(s.p0.col, s.p0.depth * l + offset)
                 ctx.lineTo(s.p1.col, s.p1.depth * l + offset)
-            ctx.stroke()
-        }
-    },
-
-    screenSpace() {
-        this.clean()
-        const ctx = Screen.ctx
-
-        // Dibujar columna por columna
-        for (let x = 0; x < Screen.width; x++) {
-            const s = mainViewport.closest[x]
-            if (!s) continue
-            ctx.strokeStyle = s.color
-            ctx.beginPath()
-                ctx.moveTo(x, ~~(s.getTopAt(x)))
-                ctx.lineTo(x, ~~(s.getBottomAt(x)))
             ctx.stroke()
         }
     }

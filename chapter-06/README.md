@@ -22,28 +22,44 @@ const Controls = {
 Ahora en el Engine debería poder moverse hacia arriba con `Espacio` y bajar con `C`.
 ## Mejor movimiento
 Aunque funcionalmente el movimiento está controlado correctamente, existe forma que lo hace sentir más "natural". Este efecto se logra realizando una intepolación lineal entre el valor actual de la posición y el valor deseado con un **t** que dependa del *deltaTime*.\
-De esta forma modificamos `Controls`:
+Primero refactorizaremos el código colocando la lógica de movimiento dentro de un objeto llamado `Player`. En su función `update` colocaremos el movimiento:
 ```javascript
-const Controls = {
-    pos: vec3(0,0,0),
-  
-    update (deltaTime) {
-        const moveSpeed = deltaTime * 4.5 * (this.inkey.KeyW - this.inkey.KeyS),
-            strafeSpeed = deltaTime * 4.5 * (this.inkey.KeyD - this.inkey.KeyA),
-            crouchSpeed = deltaTime * 1.5 * (this.inkey.Space - this.inkey.KeyC);
+const Player = {
+    pos: v3(0,0,0),
 
-        this.pos.x += Camera.dir.x * moveSpeed - Camera.dir.y * strafeSpeed
-        this.pos.y += Camera.dir.y * moveSpeed + Camera.dir.x * strafeSpeed
-        this.pos.z += crouchSpeed
+    moveSpeed: 4.5,
+    strafeSpeed: 4.5,
+    crouchSpeed: 1.5,
+
+    update(deltaTime) {
+        const keys = Controls.inkey
+        const moveVelocity = deltaTime * this.moveSpeed   * (keys.KeyW - keys.KeyS),
+            strafeVelocity = deltaTime * this.strafeSpeed * (keys.KeyD - keys.KeyA),
+            crouchVelocity = deltaTime * this.crouchSpeed * (keys.Space - keys.KeyC);
+
+        this.pos.x += Camera.dir.x * moveVelocity - Camera.dir.y * strafeVelocity
+        this.pos.y += Camera.dir.y * moveVelocity + Camera.dir.x * strafeVelocity
+        this.pos.z += crouchVelocity
 
         Camera.pos.x += (this.pos.x - Camera.pos.x) * deltaTime * 10
         Camera.pos.y += (this.pos.y - Camera.pos.y) * deltaTime * 10
         Camera.pos.z += (this.pos.z - Camera.pos.z) * deltaTime * 10
     }
-
 }
 ```
-Note que reemplazamos la `rotationalSpeed`por `strafeSpeed` que ahora permite movimientos laterales.
+Note que reemplazamos la `rotationalSpeed`por `strafeSpeed` que ahora permite movimientos laterales.\
+Ahora en `main` llamamos al update del Player:
+```javascript
+function update(time) {
+    . . .
+
+    Player.update(deltaTime)
+
+    Renderer.draw()
+
+    requestAnimationFrame(update)
+}
+```
 ## Movimiento vertical de cámara
 Para el movimiento vertical de la cámara podríamos configurar dos teclas para ver hacia arriba o abajo, pero es mucho más cómodo para el usuario que sea controlado con el mouse. Para ello, vamos a hacer uso de la [Pointer Lock API](https://developer.mozilla.org/en-US/docs/Web/API/Pointer_Lock_API). Esta API nos permite bloquear el mouse dentro de un elemento del DOM, lo cual es particularmente útil para cámaras en primera persona.\
 Primero creamos la propiedad `theta` en Controls que nos indica el ángulo entre el el plano XY y el eje Z. Luego configuramos el Pointer Lock dentro de la inicialización de Controls. Por último en el update interpolamos el movimiento:
@@ -85,6 +101,15 @@ const Controls = {
     }
 }
 ```
+En Player actualizamos el movimiento:
+```javascript
+const Player = {
+    update(deltaTime) {
+        . . .
+        Camera.center += (Controls.theta - Camera.center) * deltaTime * 15
+    }
+}
+```
 En `main` debemos pasarle el Canvas como parámetro en la inicialización de Controls:
 ```javascript
 // Iniciamos los Controles
@@ -101,7 +126,7 @@ const Point = (x, y) => ({
 ```
 Con esto ya debería ser capaz de ver hacia arriba y abajo.
 ## Movimiento horizontal
-Por último, queremos cambiar el ángulo de la cámara con el mouse. Esto es particularmente sencillo debido a que solo hay que agregar pocas líneas de código en `Controls`:
+Por último, queremos cambiar el ángulo de la cámara con el mouse. Esto es particularmente sencillo debido a que solo hay que agregar pocas líneas de código en `Controls` y `Player`:
 ```javascript
 const Controls = {
     . . .
@@ -116,25 +141,29 @@ const Controls = {
             this.phi += this.phiSpeed * e.movementX / Renderer.width
         }
         . . .
-    },
-
-    update (deltaTime) {
+    }
+}
+```
+En Player actualizamos el movimiento:
+```javascript
+const Player = {
+    update(deltaTime) {
         . . .
         Camera.setAngle(Camera.angle + (this.phi - Camera.angle) * deltaTime * 15)
     }
 }
 ```
 ## Resource Manager
-Para evitar ciertos errores visuales al cargar el nivel, en `ResourceManager` debemos inicializar los controles:
+Para evitar ciertos errores visuales al cargar el nivel, en `ResourceManager` debemos inicializar los controles y al Player:
 ```javascript
 const ResourceManager = {
     . . .
     setLevel(name) {
         . . .
-        Renderer.MainViewport.sector = level.player.sector
-        Controls.pos.x = Camera.pos.x = level.player.pos.x
-        Controls.pos.y = Camera.pos.y = level.player.pos.y
-        Controls.pos.z = Camera.pos.z = level.player.pos.z
+        Player.sector = Renderer.MainViewport.sector = level.player.sector
+        Player.pos.x = Camera.pos.x = level.player.pos.x
+        Player.pos.y = Camera.pos.y = level.player.pos.y
+        Player.pos.z = Camera.pos.z = level.player.pos.z
         Controls.phi = level.player.angle
         Camera.setAngle(level.player.angle)
     }

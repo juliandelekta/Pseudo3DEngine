@@ -1,21 +1,31 @@
 const TextureLoader = {
-    textures: {},
+    textures: {
+        "-": {data: [255, 0, 255, 255], w: 1, h: 1}, // Textura por defecto
+    },
+    packages: [],
     queues: {}, // Colas de espera para las texturas
     canvas: document.createElement("canvas"),
     loading: 0,
     onReady: () => {console.log("TextureLoader: Ready")},
+    textureSet: new Set(["-"]),
 
     init() {
         this.ctx = this.canvas.getContext("2d", {willReadFrequently: true})
     },
 
     load(packageName, json) {
-        console.log("Loaded package: " + packageName)
-
         const raws = JSON.parse(json)
+        raws.forEach(r => this.textureSet.add(r.name))
+        this.packages.push({name: packageName, raws: JSON.parse(json)})
+    },
 
-        for (const raw of raws)
-            this.addTexture(raw)
+    makeTextures() {
+        for (const pkg of this.packages) {
+            for (const raw of pkg.raws)
+                this.addTexture(raw)
+
+            console.log("Loaded package: " + pkg.name)
+        }
     },
 
     addTexture(raw) {
@@ -27,12 +37,12 @@ const TextureLoader = {
         this.loading++
 
         img.onload = () => {
-            this.canvas.width  = raw.w
-            this.canvas.height = raw.h
+            this.canvas.width  = raw.h
+            this.canvas.height = raw.w
 
             this.ctx.drawImage(img, 0, 0)
 
-            raw.data = this.ctx.getImageData(0, 0, raw.w, raw.h).data
+            raw.data = this.ctx.getImageData(0, 0, raw.h, raw.w).data
 
             this.textures[raw.name] = raw
 
@@ -48,6 +58,7 @@ const TextureLoader = {
     },
 
     getTexture(name, asyncCall) {
+        if (!this.textureSet.has(name)) console.error("Texture not loaded: " + name)
         if (this.textures[name]) {
             asyncCall(this.textures[name])
         } else {

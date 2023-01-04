@@ -9,7 +9,7 @@ const Point = (x, y) => ({
     },
 
     toDepthSpace() {
-        this.col = ~~(Renderer.width * .5 * (1 - this.xp / this.yp))
+        this.col = Renderer.width * .5 * (1 - this.xp / this.yp)
         this.depth = - 1 / this.yp
     },
 
@@ -63,6 +63,7 @@ const Segment = (x0, y0, x1, y1) => ({
     toScreenSpace(topZ, bottomZ) {
         this.p0.toScreenSpace(topZ, bottomZ)
         this.p1.toScreenSpace(topZ, bottomZ)
+        this.height = topZ - bottomZ
     },
 
     getDepthAt(col) {

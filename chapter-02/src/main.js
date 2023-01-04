@@ -4,8 +4,8 @@ Camera.setFOV(Math.PI / 2)
 Camera.pos.x = 13
 Camera.pos.y = 13
 
-// Iniciamos el Canvas
-Canvas.init(document.getElementById("canvas"))
+// Iniciamos el Renderer
+Renderer.init(document.getElementById("canvas"))
 
 // Iniciamos los Controles
 Controls.init()
@@ -21,9 +21,7 @@ mainSector.segments.push(
     Segment( 9,  8,  6,  2)
 )
 
-// Creamos el Main Viewport
-const mainViewport = Viewport()
-mainViewport.sector = mainSector
+Renderer.MainViewport.sector = mainSector
 
 // Controlamos el Range para el FOV
 const range = document.getElementById("FOVRange")
@@ -41,9 +39,7 @@ let lastTime = 0;
 
     Controls.update(deltaTime)
 
-    mainSector.project()
-    mainViewport.loadBuffers()
-    Canvas.draw()
+    Renderer.draw()
 
     requestAnimationFrame(update)
 })(0)

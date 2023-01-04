@@ -29,20 +29,34 @@ La herramienta permite exportar el paquete como un archivo JS que se puede impor
 Para cargar las texturas en el engine necesitamos un *loader* que almacene todas las texturas cargadas a partir de estos archivos y facilite el acceso a ellas. `TextureLoader`
 ```javascript
 const TextureLoader = {
-    textures: {},
+    textures: {
+        "-": {data: [255, 0, 255, 255], w: 1, h: 1}, // Textura por defecto
+    },
+    packages: [],
+    queues: {}, // Colas de espera para las texturas
     canvas: document.createElement("canvas"),
+    loading: 0,
+    onReady: () => {console.log("TextureLoader: Ready")},
+    textureSet: new Set(["-"]),
 
     init() {
         this.ctx = this.canvas.getContext("2d", {willReadFrequently: true})
+        this.textureSet.add("-")
     },
 
     load(packageName, json) {
-        console.log("Loaded package: " + packageName)
-
         const raws = JSON.parse(json)
+        raws.forEach(r => this.textureSet.add(r.name))
+        this.packages.push({name: packageName, raws: JSON.parse(json)})
+    },
 
-        for (const raw of raws)
-            this.addTexture(raw)
+    makeTextures() {
+        for (const pkg of this.packages) {
+            for (const raw of pkg.raws)
+                this.addTexture(raw)
+
+            console.log("Loaded package: " + pkg.name)
+        }
     },
 
     addTexture(raw) {
@@ -51,18 +65,45 @@ const TextureLoader = {
 
         img.width  = raw.h
         img.height = raw.w
+        this.loading++
+
 
         img.onload = () => {
-            this.canvas.width  = raw.w
-            this.canvas.height = raw.h
+            this.canvas.width  = raw.h
+            this.canvas.height = raw.w
 
             this.ctx.drawImage(img, 0, 0)
 
-            raw.data = this.ctx.getImageData(0, 0, raw.w, raw.h).data
+            raw.data = this.ctx.getImageData(0, 0, raw.h, raw.w).data
 
             this.textures[raw.name] = raw
+
+            // Atiende los pedidos
+            if (this.queues[raw.name]) {
+                for (const call of this.queues[raw.name])
+                    call(raw)
+                this.queues[raw.name] = null
+            }
+            this.loading--
+            if (!this.loading) this.onReady()
+        }
+
+    },
+
+    getTexture(name, asyncCall) {
+        if (!this.textureSet.has(name)) console.error("Texture not loaded: " + name)
+        if (this.textures[name]) {
+            asyncCall(this.textures[name])
+        } else {
+            const queue = this.queues[name]
+            if (queue) {
+                queue.push(asyncCall)
+            } else {
+                this.queues[name] = [asyncCall]
+            }
         }
     }
+
 }
 ```
 Ahora en el `index.html` se importa el Loader y el paquete de texturas generado con la herramienta:
@@ -71,6 +112,22 @@ Ahora en el `index.html` se importa el Loader y el paquete de texturas generado 
 
 <!-- Texture packages -->
 <script src="assets/walls.js"></script>
+```
+En el `main.js` debemos inicializar el TextureLoader.
+```javascript
+// Iniciamos los Controles
+Controls.init()
+
+// Iniciamos los Loaders
+TextureLoader.init()
+TextureLoader.onReady = () => {
+    // Cargamos el nivel
+    if(ResourceManager.setLevel("first_level"))
+        update(0)
+}
+
+window.onload = () => TextureLoader.makeTextures()
+. . .
 ```
 Cuando abra la aplicación puede verificar que TextureLoader.textures tiene la información cargada de las texturas.
 ## Archivo de Diseño

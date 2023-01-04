@@ -16,7 +16,7 @@ En la sección *Gameplay* se exploran conceptos relacionados con las mecánicas 
 **Capítulo 4.** [Texturas en paredes](./chapter-04)\
 **Capítulo 5.** [Texturas en suelo y techo. Parallax](./chapter-05)\
 **Capítulo 6.** [Movimiento en Z. Movimiento vertical de cámara](./chapter-06)\
-**Capítulo 7.** Sectors. Portals. Viewport Occlusion Buffers. Cross Portal detection\
+**Capítulo 7.** [Portals. Viewport Occlusion Buffers. Cross Portal detection](./chapter-07)\
 **Capítulo 8.** Stack. Sector over Sector\
 **Capítulo 9.** Slopes\
 **Capítulo 10.** Thing. Sprite Wall y Sprite Face\

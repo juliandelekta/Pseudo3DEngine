@@ -10,6 +10,13 @@ Controls.init(document.getElementById("canvas"))
 
 // Iniciamos los Loaders
 TextureLoader.init()
+TextureLoader.onReady = () => {
+    // Cargamos el nivel
+    if(ResourceManager.setLevel("first_level"))
+        update(0)
+}
+
+window.onload = () => TextureLoader.makeTextures()
 
 // Controlamos el Range para el FOV
 const range = document.getElementById("FOVRange")
@@ -46,13 +53,9 @@ function update(time) {
     lastTime = time
     FPS.update(1 / deltaTime)
 
-    Controls.update(deltaTime)
+    Player.update(deltaTime)
 
     Renderer.draw()
 
     requestAnimationFrame(update)
-}
-
-TextureLoader.onReady = () => {
-    update(0)
 }

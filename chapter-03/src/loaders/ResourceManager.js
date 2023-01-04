@@ -42,11 +42,15 @@ const ResourceManager = {
     setLevel(name) {
         console.log("Setting level: " + name)
         const level = this.levels[name]
-        if (!level) return
+        if (!level) {
+            console.error(`Level not loaded: ${name}`)
+            return false
+        }
 
-        mainViewport.sector = level.player.sector
+        Renderer.MainViewport.sector = level.player.sector
         Camera.pos.x = level.player.pos.x
         Camera.pos.y = level.player.pos.y
         Camera.pos.z = level.player.pos.z
+        return true
     }
 }

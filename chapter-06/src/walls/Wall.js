@@ -1,11 +1,11 @@
 const Wall = () => ({
-    culling() {
+    clipping() {
         this.texture.u0 = this.texture.offU + this.segment.p0.l * this.texture.lengthU
         this.texture.u1 = this.texture.offU + this.segment.p1.l * this.texture.lengthU
     },
 
     draw(viewport) {
-        this.culling()
+        this.clipping()
 
         const s = this.segment,
             texture = this.texture;
@@ -20,10 +20,12 @@ const Wall = () => ({
         // Cálculo V
         const top    = s.p0.top    + (s.p1.top    - s.p0.top)    * dx
         const bottom = s.p0.bottom + (s.p1.bottom - s.p0.bottom) * dx
-        const dv = (viewport.sector.ceiling.z - viewport.sector.floor.z) * texture.h / ((bottom - top) * texture.scaleV)
+        const dv = s.height * texture.h / ((bottom - top) * texture.scaleV)
 
         const b = Math.min(bottom, viewport.bottom) << 2
         let y = Math.max(~~top, viewport.top)
+        
+        if (b < 0 || y > Renderer.height) return
 
         let v = texture.offV + (y - top) * dv
 

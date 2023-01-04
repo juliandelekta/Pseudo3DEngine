@@ -16,6 +16,6 @@ const Camera = {
         this.FOV = FOV
         this.tanFOV = Math.tan(FOV / 2)
         this.FOVRelation = 1 / this.tanFOV
-        this.dp = (Screen.width / 2) / this.tanFOV
+        this.dp = (Renderer.width / 2) / this.tanFOV
     }
 }

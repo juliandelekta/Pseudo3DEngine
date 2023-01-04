@@ -11,27 +11,12 @@ Como se puede imaginar, el Canvas de html no es más que una matriz de píxeles 
 Como todo el engine se basa en dibujar columna por columna ya sabemos que es un beneficio en el rendimiento poder almacenarla en caché. Con esta idea en mente, todo objeto debería dibujar primero sobre la columna y luego se debería transferir a la matriz de píxeles.
 
 ## Renderer
-Para mantener el código más limpio, unificamos los objetos Canvas y Screen en `Renderer`. Este objeto tendrá la referencia al Viewport principal que antes era global. Adicionalmente, tendrá la matriz de píxeles y la columna donde los demás objetos dibujan.
+Renderer es el objeto que  tendrá la matriz de píxeles y la columna donde los demás objetos dibujan.
 ```javascript
 const Renderer = {
-    width: 320,
-    height: 200,
-
+    . . .
     init(canvas) {
-        // DOM Elements
-        this.canvas = canvas
-        this.buffer = document.createElement("canvas") // Doble buffering
-
-        // Resolutions
-		canvas.width  = this.buffer.width  = this.width
-        canvas.height = this.buffer.height = this.height
-		canvas.style.width  = this.width * 2  + "px"
-        canvas.style.height = this.height * 2 + "px"
-
-        // Contexts
-        this.ctx  = this.canvas.getContext("2d")
-        this.bctx = this.buffer.getContext("2d")
-
+       . . .
         // Pixel Data
         this.pixelsLength = this.width * this.height * 4 // 4 porque cada píxel es RGBA
         this.pixels = new Uint8ClampedArray(new ArrayBuffer(this.pixelsLength)).fill(255)
@@ -43,11 +28,13 @@ const Renderer = {
     },
 
     draw() {
-        // Pseudocódigo
-        Inicialización de MainViewport
-        por cada columna {
-            MainViewport dibuja en columna
-            this.drawColumn(columna)
+         this.MainViewport.project()
+
+        this.MainViewport.x = 0
+		while(this.MainViewport.x < this.width) {
+            this.MainViewport.draw()
+            this.drawColumn(this.MainViewport.x)
+            this.MainViewport.x++
         }
 
         this.bctx.putImageData(this.imageData, 0, 0)
@@ -67,12 +54,10 @@ const Renderer = {
 }
 ```
 
-**Nota:** Tendremos que actualizar todos los archivos donde se hacía referencia a Screen o Canvas y cambiarlos por Renderer.
-
 Unos de los trucos que usaremos de acá en adelante es reemplazar la multiplicación por un *left shift* `<<`. De esta forma: `a << log2(b) = floor(a) * b` siempre y cuando `b` sea potencia de 2. Esto también se aplica a la división: `a >> log2(b) = floor(a) / b`. Emplear operadores binarios es mucho más rápido que efectuar una multiplicación o división, con el agregado adicional de que redondea `a` hacia abajo.
 
 ## Viewport
-`Viewport` como todo objeto renderizable requiere dos funciones una "project" y una "draw". Adicionalmente, necesita dos variables auxiliares: top y bottom. Estas indican los límites superior e inferior de la columna donde se puede dibujar. (Son los límites de oclusión, pero profundizaremos sobre este tema en el Capítulo 7).
+`Viewport` necesita dos variables auxiliares: top y bottom. Estas indican los límites superior e inferior de la columna donde se puede dibujar. (Son los límites de oclusión, pero profundizaremos sobre este tema en el Capítulo 7).
 ```javascript
 const Viewport = (width) => ({
     // Buffers con información de cada columna
@@ -84,22 +69,8 @@ const Viewport = (width) => ({
         this.bottom = Renderer.height
         this.depth.fill(0)
     },
-
-    loadBuffers() {
-        for (const s of this.sector.visibles) {
-
-            const from = Math.max(0, Math.min(width - 1, s.p0.col))
-            const to   = Math.max(0, Math.min(width - 1, s.p1.col))
-
-            for (let c = from; c <= to; c++) {
-                const d = s.getDepthAt(c)
-                if (d > this.depth[c]) {
-                    this.closest[c] = s
-                    this.depth[c] = d
-                }
-            }
-        }
-    },
+  
+    . . .
 
     project() {
         this.clear()
@@ -126,30 +97,8 @@ const Viewport = (width) => ({
 })
 
 ```
-La función `draw` tiene la estructura vista en `Views.screenSpace`: en la columna indicada, busca qué segmento está proyectado ahí. Si existe, dibuja el techo, el suelo y la Wall.\
-Como puede verse, Viewport necesita saber en qué columna "x" está dibujando para poder encontrar que Wall está proyectada ahí.\
+La función `draw` busca qué segmento está proyectado ahí. Si existe, dibuja el techo, el suelo y la Wall.\
 Para dibujar el techo y el suelo, temporalmente, se implementó una función auxiliar: `drawLine`. En el próximo capítulo la reemplazaremos por una clase que se encargue de ello.
-
-Ahora podemos completa el `Renderer`:
-```javascript
-const Renderer = {
-  . . .
-  draw() {
-        this.MainViewport.project()
-
-        this.MainViewport.x = 0
-        while(this.MainViewport.x < this.width) {
-            this.MainViewport.draw()
-            this.drawColumn(this.MainViewport.x)
-            this.MainViewport.x++
-        }
-
-        this.bctx.putImageData(this.imageData, 0, 0)
-        this.ctx.drawImage(this.buffer, 0, 0)
-    },
-  . . .
-}
-```
 ## Dibujando la textura
 Para dibujar la textura correctamente dentro del área projectada de la wall se emplea un método llamado [Texture Mapping](https://en.wikipedia.org/wiki/Texture_mapping). Con este método vamos a partir de las coordenadas del píxel en pantalla y las vamos a mapear con el [Texel](https://en.wikipedia.org/wiki/Texel_(graphics)) de la textura. Un texel tiene coordenadas U y V que vamos a calcular individualmente.
 ### Obteniendo U
@@ -226,7 +175,17 @@ $$U_0=offset_U + L_0 \times L_U$$
 $$U_1=offset_U + L_1 \times L_U$$
 ### Obteniendo V
 El mapeo de la componente vertical con V, es más sencillo. Como dibujamos la columna entera desde arriba hacia abajo, partimos desde un V inicial avanzamos un paso $\Delta V$ por cada píxel vertical que dibujamos.\
-La altura de la Wall es la diferencia de alturas entre el techo y el suelo: $W_h = ceiling_Z - floor_Z$.\
+La altura de la Wall es la diferencia de alturas entre el techo y el suelo: $W_h = ceiling_Z - floor_Z$. Esta componente se encuentra en `segment.height`:
+```javascript
+const Segment = () => {
+    . . .
+    toScreenSpace(topZ, bottomZ) {
+        this.p0.toScreenSpace(topZ, bottomZ)
+        this.p1.toScreenSpace(topZ, bottomZ)
+        this.height = topZ - bottomZ
+    },
+}
+```
 Si la multiplicamos por $T_h / scale_V$, obtenemos el alto en píxeles de la wall, de forma similar a como obtuvimos el ancho en U.\
 Si dividimos por el alto en píxeles de la pared proyectada ($bottom - top$) obtenemos el paso $$\Delta V = \frac{(ceiling_Z - floor_Z) \times \frac{T_h}{scale_V}}{bottom - top}$$
 *bottom* y *top* son valores de la proyección de la wall, y pueden no estar dentro de los límites de la pantalla. Es por ello que es necesario encontrar entre qué par de píxeles dentro de la pantalla hay que dibujar la columna de la wall:
@@ -240,13 +199,13 @@ $$V_i = offset_V + (t - top) \times \Delta V$$
 Suficientes cuentas por ahora, vamos a pasar al código
 ```javascript
 const Wall = () => ({
-    culling() {
+    clipping() {
         this.texture.u0 = this.texture.offU + this.segment.p0.l * this.texture.lengthU
         this.texture.u1 = this.texture.offU + this.segment.p1.l * this.texture.lengthU
     },
 
     draw(viewport) {
-        this.culling()
+        this.clipping()
 
         const s = this.segment,
             texture = this.texture;
@@ -261,7 +220,7 @@ const Wall = () => ({
         // Cálculo V
         const top    = s.p0.top    + (s.p1.top    - s.p0.top)    * dx
         const bottom = s.p0.bottom + (s.p1.bottom - s.p0.bottom) * dx
-        const dv = (viewport.sector.ceiling.z - viewport.sector.floor.z) * texture.h / ((bottom - top) * texture.scaleV)
+        const dv = s.height * texture.h / ((bottom - top) * texture.scaleV)
 
         const b = Math.min(bottom, viewport.bottom) << 2
         let y = Math.max(~~top, viewport.top)

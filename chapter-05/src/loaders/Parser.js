@@ -27,7 +27,7 @@ const Parser = {
     parseFloor(info) {
         const floor = Floor()
 
-        floor.z = info.z || 0
+        floor.z = isNaN(info.z) ? 0 : info.z
         floor.texture = this.parseTexture(info.texture)
         floor.isRelative = !!info.isRelative
         floor.parallax = !!info.parallax
@@ -38,7 +38,7 @@ const Parser = {
     parseCeiling(info) {
         const ceil = Ceiling()
 
-        ceil.z = info.z || 2
+        ceil.z = isNaN(info.z) ? 2 : info.z
         ceil.texture = this.parseTexture(info.texture)
         ceil.isRelative = !!info.isRelative
         ceil.parallax = !!info.parallax
