@@ -8,7 +8,7 @@ Pero estas mejoras tienen una restricción importante: en la renderización solo
 Hasta el momento, tenemos dos tipos de walls definidas: la *Solid Wall* y el *Portal*. Este último es el que nos garantiza ver en una columna el sector adyacente. Si pudiéramos mostrar más de un portal en una misma columna podríamos ver un sector encima del otro. En esta idea se basa la **Stack Wall**, un tipo de wall que permite apilar Portals o Solid Walls.\
 A las walls contenidas en el stack se las denomina **subwalls** para diferenciarlas de las walls tradicionales. Una subwall tiene una componente adicional **z**, es la distancia desde el suelo hasta el límite superior de la subwall. La siguiente figura presenta la estructura básica del stack:
 
-![Stack](./book/chapter-08/img/stack.png)
+![Stack](./img/stack.png)
 
 La última componente z (zn) es ignorada debido a que va a coincidir con el techo.
 ### Definición
@@ -335,7 +335,7 @@ const Sector = (name) => ({
 ### Extensiones
 Si intenta graficar con el motor actual va surgir un error visual cuando se cruzan un Flat Portal con un Portal, el cual se ve similar a:
 
-![VIsual Error](./book/chapter-08/img/visual_error.png)
+![VIsual Error](./img/visual_error.png)
 
 En la imagen se puede ver el contorno de los portales, pintado de magenta, y por debajo, un área pintada de blanco: el error visual.\
 Su origen se debe a que en la proyección del segment, la pared termina donde termina el floor (o el ceiling) y por debajo (o por encima) no hay nada que dibujar.\
@@ -484,7 +484,7 @@ Con la función ya actualizada, el jugador puede pasar de un sector a otro verti
 ### Reset
 Aun queda resolver un último error visual que ocurre cuando el Jugador se retira de la zona de interfaz, desde un subsector:
 
-![Next Error](./book/chapter-08/img/next_error.png)
+![Next Error](./img/next_error.png)
 
 La Interface sigue pensando que estamos en el subsector llamado `beam`, pero debería estar en el sector `top`.\
 La solución consiste en detectar si abandonamos los límites del sector mayor y reinciar la Interface a sus valores por defecto. En Interface agregamos la función `reset`:
