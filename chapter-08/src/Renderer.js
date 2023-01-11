@@ -38,6 +38,7 @@ const Renderer = {
         this.MainViewport.x = 0
 
         while (this.MainViewport.x < this.width) {
+            this.column.fill(255)
             this.MainViewport.draw()
             while (this.length)
                 this.viewports[--this.length].draw()

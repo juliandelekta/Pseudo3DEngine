@@ -213,8 +213,8 @@ Ahora requerimos, adicionalmente, invocar la renderización de todos los viewpor
 ```javascript
 const Renderer = {
     . . .
-    viewports: [], // Stack de Viewports a dibujar en la columna
-
+    viewports: new Array(10), // Stack de Viewports a dibujar en la columna
+	length: 0,                // Cantidad de Viewports apilados
     . . .
 
     draw() {
@@ -223,12 +223,9 @@ const Renderer = {
         this.MainViewport.x = 0
 
         while (this.MainViewport.x < this.width) {
-            let i = 0
-            this.viewports.length = 0
-            
             this.MainViewport.draw()
-            while (i < this.viewports.length)
-                this.viewports[i++].draw()
+            while (this.length)
+                this.viewports[--this.length].draw()
 
             this.drawColumn(this.MainViewport.x)
             this.MainViewport.x++
@@ -243,7 +240,7 @@ const Renderer = {
     . . .
 
     stackViewport(viewport) {
-        this.viewports[this.viewports.length] = viewport
+        this.viewports[this.length++] = viewport
     }
 }
 ```
@@ -256,9 +253,8 @@ Podemos pensar a los steps como walls sólidas que solo se dibujan en una porci�
 const Portal = () => ({
     . . .    
     draw(viewport) {
-        this.clipping()
-        let bottomZ = viewport.sector.floor.z
-        let topZ    = viewport.sector.ceiling.z
+        const bottomZ = this.segment.bottomZ
+        const topZ    = this.segment.topZ
 
         // Step UP
         if (this.next.floor.z > bottomZ) {
@@ -312,7 +308,20 @@ En la función `draw` verificamos si es necesario dibujar los steps: si la difer
 Para que los cálculos de top, bottom y height relacionados con el segment, sean los correctos, es necesario llevarlo al Screen Space con las alturas adecuadas de los Steps.\
 Nuestra función `drawPlane` tiene un ligero cambio con respecto a la de Wall, y es en el cálculo del `v` inicial. Este valor ahora depende de si es un Step Up o un Step Down y garantiza consistencia en las texturas.\
 `(y - top) * dv` para el Step Up. Al igual que para la Solid Wall\
-`(y - bottom) * dv`para el Step Down. Que "invierte" la textura.
+`(y - bottom) * dv`para el Step Down. Que "invierte" la textura.\
+Luego en `toScreenSpace` de Segment, almacenamos los valores de topZ y bottomZ:
+```javascript
+const Segment = (x0, y0, x1, y1) => ({
+    . . .
+    toScreenSpace(topZ, bottomZ) {
+        . . .
+        this.height = topZ - bottomZ
+        this.topZ = topZ
+        this.bottomZ = bottomZ
+    },
+    . . .
+})
+```
 ### Valores de Oclusión
 Cuando introdujimos el concepto de **Viewport** creamos dos valores de oclusión asociados: `top` y `bottom`. Las texturas van a ser dibujadas dentro de un viewport solo si se encuentran por debajo del top y por encima del bottom.\
 En su momento, los valores eran fijos en 0 y Renderer.height respectivamente. Pero dentro de un Portal esos valores son variables y dependen de la proyección. La siguiente figura ilustra cómo los valores de oclusión representan el límite de renderización.
@@ -330,29 +339,19 @@ const Portal = () => ({
     },
     
     draw(viewport) {
-        this.clipping()
-        let bottomZ = viewport.sector.floor.z
-        let topZ    = viewport.sector.ceiling.z
-
-        // Step UP
-        if (this.next.floor.z > bottomZ) {
-           . . .
-            bottomZ = this.next.floor.z
-        }
-
-        // Step DOWN
-        if (this.next.ceiling.z < topZ) {
-            . . .
-            topZ = this.next.ceiling.z
-        }
-
-        this.segment.toScreenSpace(topZ, bottomZ)
+        . . .
+        this.segment.toScreenSpace(
+            Math.min(this.next.ceiling.z, topZ),
+            Math.max(this.next.floor.z, bottomZ)
+        )
 
         if (!this.viewport) this.loadViewport()
         this.viewport.top    = Math.max(viewport.top,    ~~this.segment.getTopAt(viewport.x))
         this.viewport.bottom = Math.min(viewport.bottom, ~~this.segment.getBottomAt(viewport.x))
         this.viewport.x = viewport.x
         Renderer.stackViewport(this.viewport)
+        
+        this.segment.toScreenSpace(topZ, bottomZ) // Restaura el estado original
     },
     . . .
 })
@@ -447,7 +446,7 @@ const Sector = (name) => ({
             if (s.toDepthSpace()) {
                 this.visibles[this.visibles.length] = s
                 s.toScreenSpace(this.ceiling.z, this.floor.z)
-
+				s.wall.clipping()
             }
             if (s.wall.isPortal && s.wall.viewport) {
                 s.wall.viewport = null

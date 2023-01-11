@@ -64,6 +64,7 @@ const Segment = (x0, y0, x1, y1) => ({
         this.p0.toScreenSpace(topZ, bottomZ)
         this.p1.toScreenSpace(topZ, bottomZ)
         this.height = topZ - bottomZ
+        this.wall.clipping()
     },
 
     isVectorCrossing(ax, ay, bx, by) {

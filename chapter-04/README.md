@@ -205,8 +205,6 @@ const Wall = () => ({
     },
 
     draw(viewport) {
-        this.clipping()
-
         const s = this.segment,
             texture = this.texture;
 
@@ -240,7 +238,23 @@ const Wall = () => ({
 ```
 Notar que para que U y V siempre se mantengan dentro de las dimensiones de las texturas es necesario hacer el módulo: $U' = U \\% T_w$ y $V' = V \\% T_h$.\
 Como asumimos que las texturas con las que trabaja el engine tiene dimensiones que son potencia de 2 (8x8, 16x16, 32x32, 8x16, etc), se puede hacer un truco para evitar hacer el módulo y ganar performance: $U' = U \\& (T_w - 1)$ y $V' = V \\& (T_h - 1)$.\
-Los otros operadores binarios utilizados son `<< 2` para multiplicar por 4 (recuerde las componente RGBA en la matriz de píxeles) y `~~` que es una forma de obtener la parte entera de un número y evitar usar `Math.floor`.
+Los otros operadores binarios utilizados son `<< 2` para multiplicar por 4 (recuerde las componente RGBA en la matriz de píxeles) y `~~` que es una forma de obtener la parte entera de un número y evitar usar `Math.floor`.\
+Luego en `Sector` debemos llamar al clipping de cada wall en el momento de la proyección.
+
+```javascript
+const Sector = (name) => ({
+    . . .
+    project() {
+        this.visibles.length = 0 // Limpio el arreglo auxiliar
+        for (const s of this.segments)
+            if (s.toDepthSpace()) {
+                . . .
+                s.wall.clipping()
+            }
+    }
+    . . .
+})
+```
 ## Esperar la carga
 Cuando enviamos a cargar un paquete de texturas al TextureLoader se cargan una a una de forma asíncrona, es decir, no sabemos exactamente cuándo termina. Si intentamos empezar a renderizar antes de que estén completamente cargadas, vamos a tener errores visuales. Para solucionarlo dentro de [TextureLoader](./src/loaders/TextureLoader.js) se agregó la funcionalidad de invocar a un *callback* una vez que se cargaron todas las texturas pendientes. Y en [main](./src/main.js) se utiliza para iniciar el loop principal.\
 Adicionalmente, se agregó un contador de FPS que vamos a asegurarnos de ahora en más que siempre esté cercano a los 60FPS.

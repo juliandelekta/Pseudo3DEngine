@@ -75,7 +75,7 @@
         value: vals,
 
         eval() {
-            return this.value.map(v => v.eval())
+            return Array.isArray(this.value) ? this.value.map(v => v.eval()) : [ this.value.eval() ]
         }
     })
 

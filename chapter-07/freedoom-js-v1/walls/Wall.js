@@ -1,12 +1,10 @@
 const Wall = () => ({
-    culling() {
+    clipping() {
         this.texture.u0 = this.texture.offU + this.segment.p0.l * this.texture.lengthU
         this.texture.u1 = this.texture.offU + this.segment.p1.l * this.texture.lengthU
     },
 
     draw(viewport) {
-        this.culling()
-
         const s = this.segment,
             texture = this.texture;
 

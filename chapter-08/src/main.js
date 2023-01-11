@@ -12,14 +12,25 @@ Controls.init(document.getElementById("canvas"))
 
 // Iniciamos los Loaders
 TextureLoader.init()
+TextureLoader.onReady = () => {
+    // Cargamos el nivel
+    if (ResourceManager.setLevel("first_level")) {
+        update(0)
+        var t = 0; setInterval(() => {
+            ResourceManager.levels.first_level.sectors.internal.floor.z = 0.4 + 0.5 * Math.sin(t)
+            ResourceManager.levels.first_level.sectors.internal.ceiling.z = 1.6 + 0.5 * Math.sin(t+=0.03)
+        }, 30)
+    }
+}
+
+window.onload = () => TextureLoader.makeTextures()
 
 // Controlamos el Range para el FOV
 const range = document.getElementById("FOVRange")
 range.addEventListener("input", () => {
     Camera.setFOV(range.value * Math.PI / 180)
     document.getElementById("FOVValue").innerText = range.value + "°"
-});
-
+})
 
 const xpos = document.getElementById("x")
 const ypos = document.getElementById("y")
@@ -42,19 +53,6 @@ const FPS = {
     }
 }
 
-function segmentsAt(col) {
-	const vps = []
-	let actual = Renderer.MainViewport
-	
-	while (actual && !vps.includes(actual.closest[col])) {
-		const seg = actual.closest[col]
-		vps.push(seg)
-		actual = seg.wall.isPortal ? seg.wall.viewport : null
-	}
-	
-	return vps
-}
-
 let lastTime = 0
 
 // Main Loop
@@ -70,10 +68,3 @@ function update(time) {
     requestAnimationFrame(update)
 }
 
-TextureLoader.onReady = () => {
-    // Cargamos el nivel
-    if(ResourceManager.setLevel("E1M1"))
-        update(0)
-}
-
-window.onload = () => TextureLoader.makeTextures()

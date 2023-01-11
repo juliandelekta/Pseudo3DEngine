@@ -5,8 +5,6 @@ const Wall = () => ({
     },
 
     draw(viewport) {
-        this.clipping()
-
         const s = this.segment,
             texture = this.texture;
 

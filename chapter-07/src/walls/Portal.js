@@ -16,31 +16,33 @@ const Portal = () => ({
     },
     
     draw(viewport) {
-        this.clipping()
-        let bottomZ = viewport.sector.floor.z
-        let topZ    = viewport.sector.ceiling.z
+        const bottomZ = this.segment.bottomZ
+        const topZ    = this.segment.topZ
 
         // Step UP
         if (this.next.floor.z > bottomZ) {
             this.segment.toScreenSpace(this.next.floor.z, bottomZ)
             this.drawPlane(this.lower, viewport)
-            bottomZ = this.next.floor.z
         }
 
         // Step DOWN
         if (this.next.ceiling.z < topZ) {
             this.segment.toScreenSpace(topZ, this.next.ceiling.z)
             this.drawPlane(this.upper, viewport, 0, 1)
-            topZ = this.next.ceiling.z
         }
 
-        this.segment.toScreenSpace(topZ, bottomZ)
+        this.segment.toScreenSpace(
+            Math.min(this.next.ceiling.z, topZ),
+            Math.max(this.next.floor.z, bottomZ)
+        )
 
         if (!this.viewport) this.loadViewport()
         this.viewport.top    = Math.max(viewport.top,    ~~this.segment.getTopAt(viewport.x))
         this.viewport.bottom = Math.min(viewport.bottom, ~~this.segment.getBottomAt(viewport.x))
         this.viewport.x = viewport.x
         Renderer.stackViewport(this.viewport)
+        
+        this.segment.toScreenSpace(topZ, bottomZ) // Restaura el estado original
     },
 
     drawPlane(texture, viewport, topFactor = 1, bottomFactor = 0) {
