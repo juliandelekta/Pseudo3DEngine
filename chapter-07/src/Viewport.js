@@ -5,8 +5,6 @@ const Viewport = (width) => ({
     boundary: new Array(width).fill(Infinity),
 
     clear() {
-        this.top = 0
-        this.bottom = Renderer.height
         this.depth.fill(0)
         this.closest.fill(null)
     },

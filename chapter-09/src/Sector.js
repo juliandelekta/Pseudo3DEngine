@@ -26,5 +26,8 @@ const Sector = (name) => ({
         
         if (this.floor.next)   this.floor.viewport   = null
         if (this.ceiling.next) this.ceiling.viewport = null
+
+        if (this.slopeFloor) this.slopeFloor.project()
+        if (this.slopeCeil)  this.slopeCeil.project()
     }
 })

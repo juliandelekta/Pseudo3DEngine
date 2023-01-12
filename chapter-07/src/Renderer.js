@@ -38,6 +38,8 @@ const Renderer = {
         this.MainViewport.x = 0
 
         while (this.MainViewport.x < this.width) {
+            this.MainViewport.top = 0
+            this.MainViewport.bottom = this.height
             this.MainViewport.draw()
             while (this.length)
                 this.viewports[--this.length].draw()

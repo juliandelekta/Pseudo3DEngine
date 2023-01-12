@@ -325,7 +325,37 @@ const Segment = (x0, y0, x1, y1) => ({
 ### Valores de Oclusión
 Cuando introdujimos el concepto de **Viewport** creamos dos valores de oclusión asociados: `top` y `bottom`. Las texturas van a ser dibujadas dentro de un viewport solo si se encuentran por debajo del top y por encima del bottom.\
 En su momento, los valores eran fijos en 0 y Renderer.height respectivamente. Pero dentro de un Portal esos valores son variables y dependen de la proyección. La siguiente figura ilustra cómo los valores de oclusión representan el límite de renderización.
+
 ![Oclusión](./img/occlusion.png)
+
+Solo vamos a necesitar reiniciar los valroes de oclusión del MainViewport dentro del Renderer:
+```javascript
+const Renderer = {
+    . . .
+    draw() {
+        . . .
+        while (this.MainViewport.x < this.width) {
+            this.MainViewport.top = 0
+            this.MainViewport.bottom = this.height
+            this.MainViewport.draw()
+            . . .
+        }
+        . . .
+    },
+    . . .
+}
+```
+De esta forma la función `clear` del Viewport queda reducida a:
+```javascript
+const Viewport = (width) => ({
+    . . .
+    clear() {
+        this.depth.fill(0)
+        this.closest.fill(null)
+    },
+    . . .
+})
+```
 ### Viewport
 Entre los steps se ubica el Viewport que debe ser solicitado al ViewportsPool si no lo tiene. Una vez que el Portal tenga su Viewport, proyectamos el segment en el Screen Space para obtener los valores de oclusión y asignarlos al Viewport. Por último, lo apilamos en el stack del Renderer para que se dibuje.
 ```javascript

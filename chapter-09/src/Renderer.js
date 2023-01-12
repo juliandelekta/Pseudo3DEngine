@@ -15,7 +15,7 @@ const Renderer = {
         // Resolutions
 		canvas.width  = this.buffer.width  = this.width
         canvas.height = this.buffer.height = this.height
-		canvas.style.width  = this.width * 2  + "px"
+		canvas.style.width  = this.width * 2 + "px"
         canvas.style.height = this.height * 2 + "px"
 
         // Contexts
@@ -54,6 +54,7 @@ const Renderer = {
         this.renderId++
 
         ViewportsPool.clear()
+        BufferPool.clear()
     },
 
     drawColumn(col) {

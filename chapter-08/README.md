@@ -324,11 +324,8 @@ const Sector = (name) => ({
     . . .
     project() {
         . . .
-        for (const s of this.segments) {
-            . . .
-            if (this.floor.next)   this.floor.viewport   = null
-            if (this.ceiling.next) this.ceiling.viewport = null
-        }
+        if (this.floor.next)   this.floor.viewport   = null
+        if (this.ceiling.next) this.ceiling.viewport = null
     }
 })
 ```
