@@ -821,4 +821,4 @@ Con la introducción de los Sprites en nuestro Engine podemos dotar de vida nues
 En los próximos capítulos nos quedan ver las otras dos clases de Things: los *Flat Sprites* y los *Voxels*.
 
 ### Yapa
-Ahora nuestro FreeDoom en JavaScript puede renderizar los Sprites :D. Disponible en: [FreeDoom-JS-v2](./freedoom-js-v2/index.html)
+Ahora nuestro FreeDoom en JavaScript puede renderizar los Sprites :D. Disponible en: [FreeDoom-JS-v2](./freedoom-js-v2/)
