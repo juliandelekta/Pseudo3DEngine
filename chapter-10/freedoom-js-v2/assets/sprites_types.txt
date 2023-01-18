@@ -1,0 +1,47 @@
+https://doomwiki.org/wiki/Thing_types
+
+Decimal	Sprite  Radius  Height  Sequence	Class	Description
+2015    BON2	20	    16      ABCDCB	    AP	    Armor bonus
+2005    CSAW	20      16      A	        WP2	    Chainsaw
+3002    SARG	30	    56      AB+	        MO*	    Demon
+2018    ARM1	20	    16      AB	        P1	    Armor
+2048    AMMO	20	    16      A	        P	    Box of bullets
+2028    COLU	16	    16      A	        O	    Floor lamp
+43      TRE1	16	    16      A	        O	    Burnt tree
+54      TRE2	32	    16      A	        O	    Large brown tree
+47      SMIT	16	    16      A	        O	    Brown stump
+2035    BAR1	10	    42      AB	        O*	    Exploding barrel
+2002    MGUN	20	    16      A	        WP1	    Chaingun
+2001    SHOT	20	    16      A	        WP1	    Shotgun
+2010    ROCK	20	    16      A	        P1	    Rocket
+2046    BROK	20	    16      A	        P1	    Box of rockets
+20      TROO	20	    16      M		            Dead imp
+18      POSS	20	    16      L		            Dead former human
+12      PLAY	20	    16      W		            Bloody mess 2
+15      PLAY	20	    16      N		            Dead player
+48      ELEC	16	    16      A	        O	    Tall techno column
+60      GOR4	20	    68      A	        ^	    Hanging pair of legs
+24      POL5	20	    16      A		            Pool of blood and flesh
+21      SARG	20	    16      N		            Dead demon
+2003    LAUN	20	    16      A	        WP1	    Rocket launcher
+2007    CLIP	20	    16      A	        P1	    Clip
+17      CELP	20	    16      A	        P1	    Energy cell pack
+3001    TROO	20	    56      AB+	        MO*	    Imp
+5       BKEY	20	    16      AB	        P	    Blue keycard
+3004    POSS	20	    16      AB+	        MO*	    Zombieman
+9       SPOS	20	    16      AB+	        MO*	    Shotgun guy
+2004    PLAS	20	    16      A	        WP1	    Plasma gun
+2049    SBOX	20	    16      A	        P1	    Box of shotgun shells
+11                                  Deathmatch start
+2008    SHEL	20	    16      A	        P1	    4 shotgun shells
+2011    STIM	20	    16      A	        P3	    Stimpack
+2014    BON1	20	    16      ABCDCB	    AP	    Health bonus
+2012    MEDI	20	    16      A	        P3	    Medikit
+1               16      56          Player 1 Start
+2               16      56          Player 2 Start
+3               16      56          Player 3 Start
+4               16      56          Player 4 Start
+10      PLAY	20	    16      W		            Bloody mess
+26	    POL6	16	    16		AB	        O	    Twitching impaled human
+2013    SOUL	20	    16      ABCDCB	    AP	    Supercharge
+
