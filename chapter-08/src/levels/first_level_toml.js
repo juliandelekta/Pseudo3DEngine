@@ -60,7 +60,6 @@ ResourceManager.loadTOML(`name = "first_level"
     [sectors.floor]
     z = -1
     next = "other-bottom"
-    #texture = "stone_o"
 
     [sectors.ceiling]
     z = 3
@@ -70,10 +69,10 @@ ResourceManager.loadTOML(`name = "first_level"
     name = "border"
     v = [3,14, 16,14, 16,25, 3,25]
     walls = [
-        {texture = "wood", next="main"},
-        {texture = "stone"},
-        {texture = "stone"},
-        {texture = "stone"}
+        {texture = "122 2,2", next="main"},
+        {texture = "122 2,2"},
+        {texture = "122 2,2"},
+        {texture = "122 2,2"}
     ]
 
     [[sectors.loops]]
@@ -81,12 +80,12 @@ ResourceManager.loadTOML(`name = "first_level"
     v = [16,18, 3,18, 3,20, 16,20]
     walls = [
         {walls = [
-            {upper = "stone", lower = "stone_o", next = "below", z = 2},
+            {upper = "96 2,0.5", lower = "stone_o", next = "below", z = 2},
             {upper = "wood", lower = "mossy", next = "above"}
         ]},
         {texture = "stone"},
         {walls = [
-            {upper = "stone", lower = "stone_o", next = "below", z = 2},
+            {upper = "96 2,0.5", lower = "stone_o", next = "below", z = 2},
             {upper = "wood", lower = "mossy", next = "above"}
         ]},
         {texture = "stone"}
@@ -98,20 +97,19 @@ ResourceManager.loadTOML(`name = "first_level"
     [sectors.floor]
     z = -1
     next = "other-bottom"
-    #texture = "stone_o"
 
     [sectors.ceiling]
     z = 0.5
-    texture = "stone"
+    texture = "96 2,2"
 
     [[sectors.loops]]
     name = "border"
     v = [16,20, 3,20, 3,18, 16,18]
     walls = [
         {texture = "stone", next = "other"},
-        {texture = "stone"},
+        {texture = "122 2,2"},
         {texture = "stone", next = "other"},
-        {texture = "stone"}
+        {texture = "122 2,2"}
     ]
 
 [[sectors]]
@@ -119,7 +117,7 @@ ResourceManager.loadTOML(`name = "first_level"
     
     [sectors.floor]
     z = 1
-    texture = "mossy"
+    texture = "96 2,2"
 
     [sectors.ceiling]
     z = 3
@@ -131,9 +129,9 @@ ResourceManager.loadTOML(`name = "first_level"
     v = [16,20, 3,20, 3,18, 16,18]
     walls = [
         {texture = "stone", next = "other"},
-        {texture = "stone"},
+        {texture = "122 2,2"},
         {texture = "stone", next = "other"},
-        {texture = "stone"}
+        {texture = "122 2,2"}
     ]
 
 [[sectors]]
@@ -177,16 +175,16 @@ ResourceManager.loadTOML(`name = "first_level"
 	
 	[sectors.ceiling]
 	z = 4.5
-	texture = "wood"
+	texture = "110"
 	
 	[[sectors.loops]]
 	name = "border"
 	v = [10,14, 12,14, 12,25, 10,25]
 	walls = [
-		{texture = "mossy"},
-		{texture = "mossy", next = "top"},
-		{texture = "mossy"},
-		{texture = "mossy", next = "top"}
+		{texture = "wood"},
+		{texture = "wood", next = "top"},
+		{texture = "wood"},
+		{texture = "wood", next = "top"}
 	]
 
 [[sectors]]
@@ -194,7 +192,7 @@ ResourceManager.loadTOML(`name = "first_level"
 
     [sectors.floor]
     z = -4
-    texture = "stone_o"
+    texture = "33 2,2"
 
     [sectors.ceiling]
     z = -1
@@ -204,10 +202,10 @@ ResourceManager.loadTOML(`name = "first_level"
     name = "border"
     v = [3,14, 16,14, 16,25, 3,25]
     walls = [
-        {texture = "wood"},
-        {texture = "wood"},
-        {texture = "wood"},
-        {texture = "wood"}
+        {texture = "64 2,2"},
+        {texture = "64 2,2"},
+        {texture = "64 2,2"},
+        {texture = "64 2,2"}
     ]
 
 [player]

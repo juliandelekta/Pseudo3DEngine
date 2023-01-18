@@ -6,6 +6,8 @@ const Portal = () => ({
         this.up.u1 = this.up.offU + this.segment.p1.l * this.up.lengthU
         this.down.u0 = this.down.offU + this.segment.p0.l * this.down.lengthU
         this.down.u1 = this.down.offU + this.segment.p1.l * this.down.lengthU
+        
+        this.viewport = null
     },
 
     loadViewport() {
@@ -39,7 +41,7 @@ const Portal = () => ({
         this.viewport.top    = Math.max(viewport.top,    ~~this.segment.getTopAt(viewport.x))
         this.viewport.bottom = Math.min(viewport.bottom, ~~this.segment.getBottomAt(viewport.x))
         this.viewport.x = viewport.x
-        Renderer.vps[Renderer.vps.length] = this.viewport
+        this.viewport.draw()
     },
 
     drawPlane(texture, height, viewport, up = 0) {

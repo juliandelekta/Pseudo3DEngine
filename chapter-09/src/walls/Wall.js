@@ -34,12 +34,6 @@ const Wall = () => ({
             Renderer.column[y+1] = texture.data[i+1]
             Renderer.column[y+2] = texture.data[i+2]
         }
-    },
-	
-	extendUp(viewport) {
-	},
-	
-	extendDown(viewport) {
-	}
+    }
 
 })

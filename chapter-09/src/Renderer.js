@@ -2,9 +2,6 @@ const Renderer = {
     width: 320,
     height: 200,
 
-    viewports: new Array(16), // Stack de Viewports a dibujar en la columna
-    length: 0,
-
     renderId: 0,
 
     init(canvas) {
@@ -42,8 +39,6 @@ const Renderer = {
             this.MainViewport.top = 0
             this.MainViewport.bottom = this.height
             this.MainViewport.draw()
-            while (this.length)
-                this.viewports[--this.length].draw()
 
             this.drawColumn(this.MainViewport.x)
             this.MainViewport.x++
@@ -66,9 +61,5 @@ const Renderer = {
             this.pixels[i+3] = this.column[y+3]
             i += this.width << 2
         }
-    },
-
-    stackViewport(viewport) {
-        this.viewports[this.length++] = viewport
     }
 }

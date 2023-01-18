@@ -15,15 +15,7 @@ const Sector = (name) => ({
             if (s.toDepthSpace()) {
                 this.visibles[this.visibles.length] = s
                 s.toScreenSpace(this.ceiling.z, this.floor.z)
-                s.wall.clipping()
-            }
-
-            if (s.wall.isPortal) {
-                s.wall.viewport = null
-            } else if (s.wall.isStack) {
-                for (const subwall of s.wall.walls)
-                    if (subwall.isPortal)
-                        subwall.viewport = null
+                s.wall.clipping()     
             }
         }
         
@@ -63,16 +55,16 @@ const Sector = (name) => ({
 	inside(x, y) {
 		let cross = 0;
 		for (const s of this.border) {
-			const x0 = Math.min(s.p0.x, s.p1.x);
-			const x1 = Math.max(s.p0.x, s.p1.x);
-			const y0 = Math.min(s.p0.y, s.p1.y);
-			const y1 = Math.max(s.p0.y, s.p1.y);
-			if (y <= y0 || y > y1 || x > x1) continue;
+			const x0 = Math.min(s.p0.x, s.p1.x)
+			const x1 = Math.max(s.p0.x, s.p1.x)
+			const y0 = Math.min(s.p0.y, s.p1.y)
+			const y1 = Math.max(s.p0.y, s.p1.y)
+			if (y <= y0 || y > y1 || x > x1) continue
 			if (x0 > x) {cross++; continue}
-			const xi = s.p0.x + (y - s.p0.y) * (s.p1.x - s.p0.x) / (s.p1.y - s.p0.y);
-			cross += x < xi;
+			const xi = s.p0.x + (y - s.p0.y) * (s.p1.x - s.p0.x) / (s.p1.y - s.p0.y)
+			cross += x < xi
 		}
-		return cross % 2;
+		return cross % 2
 	},
 
 	addSubsector(sector) {

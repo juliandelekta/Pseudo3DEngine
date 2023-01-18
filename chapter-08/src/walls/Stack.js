@@ -7,6 +7,12 @@ const Stack = () => ({
             wall.clipping()
     },
 
+    loadViewport(visible) {
+        for (const subwall of this.walls)
+            if (subwall.isPortal)
+                subwall.loadViewport(visible)
+    },
+
     draw(viewport) {
         let z = 0
         const floor = viewport.sector.floor.z
@@ -18,13 +24,5 @@ const Stack = () => ({
 			z = wall.z
 		}
         this.segment.toScreenSpace(ceil, floor)
-    },
-	
-	extendUp(viewport) {
-        this.walls[this.walls.length - 1].extendUp(viewport)
-	},
-	
-	extendDown(viewport) {
-        this.walls[0].extendDown(viewport)
-	}
+    }
 })

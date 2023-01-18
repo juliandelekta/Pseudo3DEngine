@@ -39,20 +39,15 @@ const Viewport = (width) => ({
     draw() {
         const segment = this.closest[this.x]
         if (segment) {
-			// Wall
-            segment.wall.draw(this)
-
 			// Flats
 			if (Camera.pos.z < segment.sector.ceiling.z)
 				segment.sector.ceiling.draw(segment.getTopAt(this.x), this)
 			if (Camera.pos.z > segment.sector.floor.z)
 				segment.sector.floor.draw(segment.getBottomAt(this.x), this)
+			// Wall
+            segment.wall.draw(this)
+
 			
-			// Extension
-			if (Camera.pos.z > segment.sector.ceiling.z)
-				segment.wall.extendUp(this)
-			if (Camera.pos.z < segment.sector.floor.z)
-				segment.wall.extendDown(this)
         }
     }
 })

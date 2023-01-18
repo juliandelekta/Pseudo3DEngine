@@ -62,6 +62,7 @@ const Flat = {
         this.viewport.top    = Math.max(viewport.top,    this.y0)
         this.viewport.bottom = Math.min(viewport.bottom, this.y1)
         this.viewport.x = viewport.x
+        
         this.viewport.draw()
     }
 }

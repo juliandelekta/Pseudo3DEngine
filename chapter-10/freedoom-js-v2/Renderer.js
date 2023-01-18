@@ -1,6 +1,6 @@
 const Renderer = {
-    width: 320,
-    height: 200,
+    width: 480,
+    height: 300,
 
     renderId: 0,
 
@@ -12,7 +12,7 @@ const Renderer = {
         // Resolutions
 		canvas.width  = this.buffer.width  = this.width
         canvas.height = this.buffer.height = this.height
-		canvas.style.width  = this.width  * 2 + "px"
+		canvas.style.width  = this.width  * 1.5 + "px"
         canvas.style.height = this.height * 2 + "px"
 
         // Contexts
@@ -46,16 +46,28 @@ const Renderer = {
         this.bctx.putImageData(this.imageData, 0, 0)
         this.ctx.drawImage(this.buffer, 0, 0)
         this.renderId++
-		ViewportsPool.freeAll()
+		ViewportsPool.clear()
     },
 
     drawColumn(col) {
         let i = col << 2
-        for (let y = 0; y < this.column.length; y+=4) {
-            this.pixels[i]   = this.column[y]  
-            this.pixels[i+1] = this.column[y+1]
-            this.pixels[i+2] = this.column[y+2]
-            i += this.width << 2
+        const pixels = this.pixels, column = this.column, di = this.width << 2
+        for (let y = 0, len = column.length; y < len; y+=16, i+=di) {
+            pixels[i]   = column[y]  
+            pixels[i+1] = column[y+1]
+            pixels[i+2] = column[y+2]
+            i+=di
+            pixels[i]   = column[y+4]  
+            pixels[i+1] = column[y+5]
+            pixels[i+2] = column[y+6]
+            i+=di
+            pixels[i]   = column[y+8]  
+            pixels[i+1] = column[y+9]
+            pixels[i+2] = column[y+10]
+            i+=di
+            pixels[i]   = column[y+12]  
+            pixels[i+1] = column[y+13]
+            pixels[i+2] = column[y+14]
         }
     }
 }

@@ -30,12 +30,23 @@ const Player = {
     },
 
     checkCrossPortal() {
-        for (const s of this.sector.segments) {
+        let nextSector = this.getCrossedInSector(this.sector)
+        if (nextSector !== this.sector) {
+            const second = this.getCrossedInSector(nextSector) // Previene errores al cruzar por las esquinas de un subsector
+            if (second !== this.sector) {
+                this.sector = Renderer.MainViewport.sector = nextSector
+            }
+        }
+    },
+
+    getCrossedInSector(sector) {
+		for (const s of sector.segments) {
             if (s.isVectorCrossing(this.last.x, this.last.y, Camera.pos.x, Camera.pos.y)) {
                 if (s.wall.isPortal) {
-                    this.sector = Renderer.MainViewport.sector = s.wall.next
+					return s.wall.next
                 }
             }
         }
-    }
+		return sector
+	}
 }

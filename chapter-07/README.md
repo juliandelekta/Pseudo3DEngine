@@ -175,7 +175,7 @@ const Linker = {
 ## Pool de Viewports
 Como mencionamos, cada Portal requiere un Viewport asociado. Si creáramos un Viewport por cada Portal existente, ocuparíamos demasiado espacio en memoria innecesariamente, debido a que no siempre son visibles.\
 Una solución más elegante consiste en asignar los Viewports a demanda para los Portals que son visibles en un determinado frame. De esta forma, solo necesitamos crear un número fijo de Viewports y reciclarlos a medida que se requiera.\
-El objeto que adminsitra los Viewports es el `ViewportsPool`:
+El objeto que administra los Viewports es el `ViewportsPool`:
 ```javascript
 const ViewportsPool = {
     length: 0,
@@ -195,54 +195,9 @@ const ViewportsPool = {
     }
 }
 ```
-Hasta ahora, como teníamos un único Viewport (el MainViewport) en el Renderer especificamos la renderización del mismo de la siguiente forma:
-```javascript
-while (this.MainViewport.x < this.width) {
-    this.MainViewport.draw()
-
-    this.drawColumn(this.MainViewport.x)
-    this.MainViewport.x++
-}
-```
 Y en `main` inicializamos el Viewports Pool:
 ```javascript
 ViewportsPool.init()
-```
-## Stack de Viewports
-Ahora requerimos, adicionalmente, invocar la renderización de todos los viewports existentes en una columna. Estos se van a ir apilando en un stack dentro del renderer. Luego, uno por uno se invocan. Para ello tendremos que realizar algunos cambios en Renderer:
-```javascript
-const Renderer = {
-    . . .
-    viewports: new Array(10), // Stack de Viewports a dibujar en la columna
-	length: 0,                // Cantidad de Viewports apilados
-    . . .
-
-    draw() {
-        this.MainViewport.project()
-
-        this.MainViewport.x = 0
-
-        while (this.MainViewport.x < this.width) {
-            this.MainViewport.draw()
-            while (this.length)
-                this.viewports[--this.length].draw()
-
-            this.drawColumn(this.MainViewport.x)
-            this.MainViewport.x++
-        }
-
-        this.bctx.putImageData(this.imageData, 0, 0)
-        this.ctx.drawImage(this.buffer, 0, 0)
-
-        ViewportsPool.clear()
-    },
-
-    . . .
-
-    stackViewport(viewport) {
-        this.viewports[this.length++] = viewport
-    }
-}
 ```
 
 ## Renderización
@@ -291,7 +246,7 @@ const Portal = () => ({
 
         if (b < 0 || y > Renderer.height) return
 
-        let v = texture.offV + (y - top * topFactor - bottom * bottomFactor) * dv
+        let v = texture.offV + (y - top * topFactor - bottom * bottomFactor - 1) * dv
 
         for (y *= 4; y < b; y+=4, v+=dv) {
             const i = (i0 + (v & (texture.h - 1))) << 2
@@ -328,7 +283,7 @@ En su momento, los valores eran fijos en 0 y Renderer.height respectivamente. Pe
 
 ![Oclusión](./img/occlusion.png)
 
-Solo vamos a necesitar reiniciar los valroes de oclusión del MainViewport dentro del Renderer:
+Solo vamos a necesitar reiniciar los valores de oclusión del MainViewport dentro del Renderer:
 ```javascript
 const Renderer = {
     . . .
@@ -357,11 +312,19 @@ const Viewport = (width) => ({
 })
 ```
 ### Viewport
-Entre los steps se ubica el Viewport que debe ser solicitado al ViewportsPool si no lo tiene. Una vez que el Portal tenga su Viewport, proyectamos el segment en el Screen Space para obtener los valores de oclusión y asignarlos al Viewport. Por último, lo apilamos en el stack del Renderer para que se dibuje.
+Entre los steps se ubica el Viewport que debe ser solicitado al ViewportsPool cuando este sea visible. En la etapa de clipping, debemos liberar el Viewport del frame anterior. Una vez que el Portal tenga su Viewport, proyectamos el segment en el Screen Space para obtener los valores de oclusión y asignarlos al Viewport. Por último, enviamos a dibujar el Viewport.
 ```javascript
 const Portal = () => ({
+    clipping() {
+        . . .
+        this.viewport = null
+    },
     . . .
-    loadViewport() {
+    loadViewport(visible) {
+        if (!visible) {
+            this.viewport = null
+            return
+        }
         this.viewport = ViewportsPool.take()
         this.viewport.sector = this.next
         this.viewport.segment = this.segment
@@ -375,11 +338,10 @@ const Portal = () => ({
             Math.max(this.next.floor.z, bottomZ)
         )
 
-        if (!this.viewport) this.loadViewport()
         this.viewport.top    = Math.max(viewport.top,    ~~this.segment.getTopAt(viewport.x))
         this.viewport.bottom = Math.min(viewport.bottom, ~~this.segment.getBottomAt(viewport.x))
         this.viewport.x = viewport.x
-        Renderer.stackViewport(this.viewport)
+        this.viewport.draw()
         
         this.segment.toScreenSpace(topZ, bottomZ) // Restaura el estado original
     },
@@ -478,9 +440,6 @@ const Sector = (name) => ({
                 s.toScreenSpace(this.ceiling.z, this.floor.z)
 				s.wall.clipping()
             }
-            if (s.wall.isPortal && s.wall.viewport) {
-                s.wall.viewport = null
-            }
         }
     }
 
@@ -538,7 +497,30 @@ const Player = {
         }
     }
 }
-
+```
+Aunque la anterior implementación es correcta, ocurre un error cuando atravesamos una esquina de un subsector. Necesitamos verificar dos veces el cruce de Portales:
+```javascript
+const Player = {
+    . . .
+    checkCrossPortal() {
+        let nextSector = this.getCrossedInSector(this.sector)
+        if (nextSector !== this.sector) {
+            const second = this.getCrossedInSector(nextSector) // Previene errores al cruzar por las esquinas de un subsector
+            if (second !== this.sector) {
+                this.sector = Renderer.MainViewport.sector = nextSector
+            }
+        }
+    },
+    getCrossedInSector(sector) {
+		for (const s of sector.segments) {
+            if (s.isVectorCrossing(this.last.x, this.last.y, Camera.pos.x, Camera.pos.y)) {
+                if (s.wall.isPortal)
+					return s.wall.next
+            }
+        }
+		return sector
+	}
+}
 ```
 
 ## Conclusión

@@ -39,12 +39,9 @@ const Viewport = (width) => ({
     },
 
     draw() {
-        if (this.drawed === this.x) throw "Drawed:" + this.x//return
         this.drawed = this.x
         const segment = this.closest[this.x]
-        if (segment) {
-			if (segment.sector !== this.sector) throw "Different: " + this.x
-			
+        if (segment) {			
             segment.sector.ceiling.draw(segment.getTopAt(this.x), this)
             segment.sector.floor.draw(segment.getBottomAt(this.x), this)
             segment.wall.draw(this)

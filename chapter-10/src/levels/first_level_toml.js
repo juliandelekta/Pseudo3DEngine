@@ -139,7 +139,6 @@ ResourceManager.loadTOML(`name = "first_level"
     [sectors.floor]
     z = -1
     next = "other-bottom"
-    #texture = "stone_o"
 
     [sectors.ceiling]
     z = 3

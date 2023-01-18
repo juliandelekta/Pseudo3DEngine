@@ -14,14 +14,6 @@ const Sector = (name) => ({
                 s.toScreenSpace(this.ceiling.z, this.floor.z)
                 s.wall.clipping()
             }
-
-            if (s.wall.isPortal) {
-                s.wall.viewport = null
-            } else if (s.wall.isStack) {
-                for (const subwall of s.wall.walls)
-                    if (subwall.isPortal)
-                        subwall.viewport = null
-            }
         }
         
         if (this.floor.next)   this.floor.viewport   = null

@@ -7,19 +7,11 @@ const ViewportsPool = {
     
     take() {
         const viewport = this.viewports[this.length]
-		viewport.drawed = -1
         this.length++
         return viewport
     },
 
-    free(viewport) {
-        const i = this.viewports.indexOf(viewport)
-        this.length--
-        this.viewports[i] = this.viewports[this.length]
-        this.viewports[this.length] = viewport
-    },
-	
-	freeAll() {
-		this.length = 0
-	}
+    clear() {
+        this.length = 0
+    }
 }

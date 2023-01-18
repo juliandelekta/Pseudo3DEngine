@@ -51,10 +51,11 @@ const Viewport = (width) => ({
     draw() {
         const segment = this.closest[this.x]
         if (segment) {
-			if (segment.sector !== this.sector) throw "Different: " + this.x
-			
-            segment.sector.ceiling.draw(segment.getTopAt(this.x), this)
-            segment.sector.floor.draw(segment.getBottomAt(this.x), this)
+			// Flats
+			if (Camera.pos.z < segment.sector.ceiling.z)
+				segment.sector.ceiling.draw(segment.getTopAt(this.x), this)
+			if (Camera.pos.z > segment.sector.floor.z)
+				segment.sector.floor.draw(segment.getBottomAt(this.x), this)
             segment.wall.draw(this)
         }
 

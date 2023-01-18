@@ -18,13 +18,5 @@ const Stack = () => ({
 			z = wall.z
 		}
         this.segment.toScreenSpace(ceil, floor)
-    },
-	
-	extendUp(viewport) {
-        this.walls[this.walls.length - 1].extendUp(viewport)
-	},
-	
-	extendDown(viewport) {
-        this.walls[0].extendDown(viewport)
-	}
+    }
 })

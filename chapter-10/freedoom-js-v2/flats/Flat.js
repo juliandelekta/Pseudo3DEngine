@@ -13,14 +13,17 @@ const Flat = {
 
         const dirX = (Camera.left.x + Camera.delta.x * viewport.x) * w,
               dirY = (Camera.left.y + Camera.delta.y * viewport.x) * h;
-        const col = Renderer.column, data = texture.data
+        const col = Renderer.column, data = texture.data,
+            lookup = Camera.lookup, off = - Camera.center + Renderer.height * .5,
+            tw = texture.w - 1, th = texture.h - 1
+        
 
-        for (let y = this.y0; y < this.y1; y++) {
-		    const rowDistance = distanceRelation / (y - Camera.center)
+        for (let y = this.y0, y1 = this.y1; y < y1; y++) {
+		    const rowDistance = distanceRelation * lookup[~~(y + off)]/// (y - Camera.center)
             const l = Math.max(0, Math.min(this.sector.light + 1 / rowDistance, 1))
 
-            const u = (offU + rowDistance * dirX) & (texture.w - 1),
-                  v = (offV + rowDistance * dirY) & (texture.h - 1);
+            const u = (offU + rowDistance * dirX) & tw,
+                  v = (offV + rowDistance * dirY) & th;
 
             const Y = y << 2
             const i = (u * texture.h + v) << 2

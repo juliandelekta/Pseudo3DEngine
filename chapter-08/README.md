@@ -141,27 +141,26 @@ const Stack = () => ({
 })
 ```
 ### Cross Stack
-Para permitir que la cámara pueda atravesar los Portals de un Stack, debemos actualizar la función `checkCrossPortal` del Player:
+Para permitir que la cámara pueda atravesar los Portals de un Stack, debemos actualizar la función `getCrossedInSector` del Player:
 ```javascript
 const Player = {
     . . .
-    checkCrossPortal() {
-        for (const s of this.sector.segments) {
+    getCrossedInSector(sector) {
+		for (const s of sector.segments) {
             if (s.isVectorCrossing(this.last.x, this.last.y, Camera.pos.x, Camera.pos.y)) {
                 if (s.wall.isPortal) {
-                    this.sector = Renderer.MainViewport.sector = s.wall.next
-                    break
+					return s.wall.next
                 } else if (s.wall.isStack) {
                     for (const subwall of s.wall.walls) {
-                        if (subwall.isPortal && (this.sector.floor.z + subwall.z || this.sector.ceiling.z) > Camera.pos.z) {
-                            this.sector = Renderer.MainViewport.sector = subwall.next
-                            break
+                        if ((sector.floor.z + subwall.z || Infinity) > Camera.pos.z && subwall.isPortal) {
+							return subwall.next
                         }
                     }
                 }
             }
         }
-    }
+		return sector
+	}
 }
 ```
 ## Flat Portal
@@ -336,95 +335,27 @@ Si intenta graficar con el motor actual va surgir un error visual cuando se cruz
 
 En la imagen se puede ver el contorno de los portales, pintado de magenta, y por debajo, un área pintada de blanco: el error visual.\
 Su origen se debe a que en la proyección del segment, la pared termina donde termina el floor (o el ceiling) y por debajo (o por encima) no hay nada que dibujar.\
-Para solucionarlo, debemos **extender** el Portal hasta el límite de la pantalla, únicamente cuando estemos fuera de los límites del Sector. Entonces, en Viewport agregamos:
-```javascript
-const Viewport = (width) => ({
-  draw() {
-        const segment = this.closest[this.x]
-        if (segment) {
-			// Wall
-            ...
-			// Flats
-			...
-            // Extension
-			if (Camera.pos.z > segment.sector.ceiling.z)
-				segment.wall.extendUp(this)
-			if (Camera.pos.z < segment.sector.floor.z)
-				segment.wall.extendDown(this)
-        }
-    }
-})
-```
-De esta forma, para cada tipo de Wall creamos ambas funciones.\
-Lógicamente, para la Solid Wall no hacemos nada:
-```javascript
-const Wall = () => ({
-    . . .
-    extendUp(viewport) {
-	},
-	
-	extendDown(viewport) {
-	}
-})
-```
-Para el Portal, extendemos los valores de oclusión del Viewport:
+Para solucionarlo, debemos **extender** el Portal hasta el límite de la pantalla, únicamente cuando estemos fuera de los límites del Sector. Entonces, en Portal, verificamos que la cámara se encuentre fuera del Sector verticalmente, y que no haya un Step:
 ```javascript
 const Portal = () => ({
     . . .
-    extendUp(viewport) {
-		if (this.next.ceiling.z >= viewport.sector.ceiling.z) // Si no hay Step Down
-			this.viewport.top = viewport.top
-	},
-	
-	extendDown(viewport) {
-		if (this.next.floor.z <= viewport.sector.floor.z) // Si no hay Step Up
-			this.viewport.bottom = viewport.bottom
-	}
-})
-```
-El Stack, únicamente llama a la extensión de sus walls ubicadas en los extremos:
-```javascript
-const Stack = () => ({
-    . . .
-    extendUp(viewport) {
-        this.walls[this.walls.length - 1].extendUp(viewport)
-	},
-	
-	extendDown(viewport) {
-        this.walls[0].extendDown(viewport)
-	}
+    draw(viewport) {
+        . . .
+        if (!this.viewport) this.loadViewport()
+        
+        this.viewport.top = this.next.ceiling.z >= viewport.sector.ceiling.z && Camera.pos.z > topZ
+            ? viewport.top
+            : Math.max(viewport.top,    ~~this.segment.getTopAt(viewport.x))
+        this.viewport.bottom = this.next.floor.z <= viewport.sector.floor.z && Camera.pos.z < bottomZ
+            ? viewport.bottom
+            : Math.min(viewport.bottom, ~~this.segment.getBottomAt(viewport.x))
+        . . .
+    },
 })
 ```
 Y con ese arreglo ya debería ser posible ver el nivel sin errores gráficos.
 ### Cross Flat Portal
-Antes de pasar a programar la lógica para cruzar un Flat Portal, debemos refactorizar el código en `Player`.
-```javascript
-const Player = {
-    . . .
-    checkCrossPortal() {
-        const nextSector = this.getCrossedInSector(this.sector)
-		this.sector = Renderer.MainViewport.sector = nextSector
-    },
-    
-    getCrossedInSector(sector) {
-		for (const s of sector.segments) {
-            if (s.isVectorCrossing(this.last.x, this.last.y, Camera.pos.x, Camera.pos.y)) {
-                if (s.wall.isPortal) {
-					return s.wall.next
-                } else if (s.wall.isStack) {
-                    for (const subwall of s.wall.walls) {
-                        if ((sector.floor.z + subwall.z || Infinity) > Camera.pos.z && subwall.isPortal) {
-							return subwall.next
-                        }
-                    }
-                }
-            }
-        }
-		return sector
-	}
-}
-```
-De esta forma, Player puede saber si atravesó algún Portal de un determinado Sector. Esto es realmente importante, puesto que el jugador puede estar cruzando Portales de un Sector que está encima o debajo. Si estos cruces no se tienen en cuenta, pueden causar errores gráficos.\
+Se debe tener la consideración de que el jugador puede estar cruzando Portales de un Sector que está encima o debajo. Si estos cruces no se tienen en cuenta, pueden causar errores gráficos.\
 Para llevar el control de estos cambios empleamos a `Interface`, a la que le añadimos la propiedad de cambiar el campo *next* de los Flats que tiene encima o debajo:
 ```javascript
 const Interface = (upSector, downSector) => ({
@@ -440,7 +371,7 @@ const Interface = (upSector, downSector) => ({
 	},
 })
 ```
-Con estas funciones ya podemos completar nuestra función checkCrossPortal del Player:
+Con estas funciones ya podemos completar nuestra función checkCrossPortal del Player. Si hay varios Sectors apilados, tenemos que recorrer iterativamente de forma vertical, verificando si hubo cruces entre sectores:
 ```javascript
 const Player = {
     . . .
@@ -456,10 +387,14 @@ const Player = {
 				this.sector.ceiling.next.floor.next = this.sector // Garantizo la ida y la vuelta
 				this.sector = Renderer.MainViewport.sector = this.sector.ceiling.next
 			} else {
-                // Verifico si crucé algún Portal en el Sector de arriba
-				const upSector = this.getCrossedInSector(this.sector.ceiling.next)
-                if (upSector !== this.sector.ceiling.next)
-                    this.sector.ceiling.interface.updateUpSector(upSector)
+                // Verifico si crucé algún Portal en el Sector de arriba e itero consecutivamente entre Sectors apilados
+				let ceiling = this.sector.ceiling
+                while (ceiling.next) {
+                    const upSector = this.getCrossedInSector(ceiling.next)
+                    if (upSector !== ceiling.next)
+                        ceiling.interface.updateUpSector(upSector)
+                    ceiling = ceiling.next.ceiling
+                }
 			}
         }
 
@@ -468,10 +403,14 @@ const Player = {
 				this.sector.floor.next.ceiling.next = this.sector
 				this.sector = Renderer.MainViewport.sector = this.sector.floor.next
 			} else {
-                // Verifico si crucé algún Portal en el Sector de abajo
-				const downSector = this.getCrossedInSector(this.sector.floor.next)
-                if (downSector !== this.sector.floor.next)
-                    this.sector.floor.interface.updateDownSector(downSector)
+                // Verifico si crucé algún Portal en el Sector de abajo e iterativamente
+				let floor = this.sector.floor
+                while (floor.next) {
+                    const downSector = this.getCrossedInSector(floor.next)
+                    if (downSector !== floor.next)
+                        floor.interface.updateDownSector(downSector)
+                    floor = floor.next.floor
+                }
 			}
         }
     }
@@ -498,12 +437,17 @@ Y al detección del cruce la realizamos en Player:
 ```javascript
 const Player = {
     checkCrossPortal() {
-        const nextSector = this.getCrossedInSector(this.sector)
-        if (this.sector.ceiling.interface && nextSector.ceiling.interface !== this.sector.ceiling.interface)
-            this.sector.ceiling.interface.reset()
-        if (this.sector.floor.interface && nextSector.floor.interface !== this.sector.floor.interface)
-            this.sector.floor.interface.reset()
-		this.sector = Renderer.MainViewport.sector = nextSector
+        let nextSector = this.getCrossedInSector(this.sector)
+        if (nextSector !== this.sector) {
+            const second = this.getCrossedInSector(nextSector) // Previene errores al cruzar por las esquinas de un subsector
+            if (second !== this.sector) {
+                if (this.sector.ceiling.interface && nextSector.ceiling.interface !== this.sector.ceiling.interface)
+                    this.sector.ceiling.interface.reset()
+                if (this.sector.floor.interface && nextSector.floor.interface !== this.sector.floor.interface)
+                    this.sector.floor.interface.reset()
+                this.sector = Renderer.MainViewport.sector = nextSector
+            }
+        }
         . . .
     }
 }

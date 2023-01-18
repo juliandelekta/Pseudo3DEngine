@@ -7,6 +7,7 @@ const Camera = {
     nearPlane: -0.00001,
     center: Renderer.height / 2,
     left:  v2(), delta: v2(),
+    lookup: new Float32Array(2 * Renderer.height).fill(0).map((_, i) => 1 / (i - Renderer.height/2)),
 
     setAngle(angle) {
         this.angle = angle

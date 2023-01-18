@@ -58,10 +58,10 @@ const Flat = {
 
     drawNext(viewport) {
         if (!this.viewport) this.loadViewport()
-
         this.viewport.top    = Math.max(viewport.top,    this.y0)
         this.viewport.bottom = Math.min(viewport.bottom, this.y1)
         this.viewport.x = viewport.x
-        Renderer.stackViewport(this.viewport)
+
+        this.viewport.draw()
     }
 }

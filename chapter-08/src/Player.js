@@ -30,12 +30,17 @@ const Player = {
     },
 
     checkCrossPortal() {
-        const nextSector = this.getCrossedInSector(this.sector)
-        if (this.sector.ceiling.interface && nextSector.ceiling.interface !== this.sector.ceiling.interface)
-            this.sector.ceiling.interface.reset()
-        if (this.sector.floor.interface && nextSector.floor.interface !== this.sector.floor.interface)
-            this.sector.floor.interface.reset()
-		this.sector = Renderer.MainViewport.sector = nextSector
+        let nextSector = this.getCrossedInSector(this.sector)
+        if (nextSector !== this.sector) {
+            const second = this.getCrossedInSector(nextSector) // Previene errores al cruzar por las esquinas de un subsector
+            if (second !== this.sector) {
+                if (this.sector.ceiling.interface && nextSector.ceiling.interface !== this.sector.ceiling.interface)
+                    this.sector.ceiling.interface.reset()
+                if (this.sector.floor.interface && nextSector.floor.interface !== this.sector.floor.interface)
+                    this.sector.floor.interface.reset()
+                this.sector = Renderer.MainViewport.sector = nextSector
+            }
+        }
 
         if (this.sector.ceiling.next) {
 			if (Camera.pos.z > this.sector.ceiling.z) {
@@ -45,9 +50,13 @@ const Player = {
 				this.sector.ceiling.next.floor.next = this.sector // Garantizo la ida y la vuelta
 				this.sector = Renderer.MainViewport.sector = this.sector.ceiling.next
 			} else {
-                const upSector = this.getCrossedInSector(this.sector.ceiling.next)
-                if (upSector !== this.sector.ceiling.next)
-                    this.sector.ceiling.interface.updateUpSector(upSector)
+                let ceiling = this.sector.ceiling
+                while (ceiling.next) {
+                    const upSector = this.getCrossedInSector(ceiling.next)
+                    if (upSector !== ceiling.next)
+                        ceiling.interface.updateUpSector(upSector)
+                    ceiling = ceiling.next.ceiling
+                }
 			}
         }
 
@@ -56,9 +65,13 @@ const Player = {
 				this.sector.floor.next.ceiling.next = this.sector
 				this.sector = Renderer.MainViewport.sector = this.sector.floor.next
 			} else {
-                const downSector = this.getCrossedInSector(this.sector.floor.next)
-                if (downSector !== this.sector.floor.next)
-                    this.sector.floor.interface.updateDownSector(downSector)
+                let floor = this.sector.floor
+                while (floor.next) {
+                    const downSector = this.getCrossedInSector(floor.next)
+                    if (downSector !== floor.next)
+                        floor.interface.updateDownSector(downSector)
+                    floor = floor.next.floor
+                }
 			}
         }
     },

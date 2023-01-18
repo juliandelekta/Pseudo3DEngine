@@ -11,10 +11,7 @@ const Sector = (name) => ({
             if (s.toDepthSpace()) {
                 this.visibles[this.visibles.length] = s
                 s.toScreenSpace(this.ceiling.z, this.floor.z)
-
-            }
-            if (s.wall.isPortal && s.wall.viewport) {
-                s.wall.viewport = null
+                s.wall.clipping()
             }
         }
     }

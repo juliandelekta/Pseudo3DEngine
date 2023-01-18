@@ -1,8 +1,6 @@
 const Renderer = {
-    width: 320,
-    height: 200,
-
-    vps: [],
+    width: 480,
+    height: 300,
 
     renderId: 0,
 
@@ -14,7 +12,7 @@ const Renderer = {
         // Resolutions
 		canvas.width  = this.buffer.width  = this.width
         canvas.height = this.buffer.height = this.height
-		canvas.style.width  = this.width  * 2 + "px"
+		canvas.style.width  = this.width  * 1.5 + "px"
         canvas.style.height = this.height * 2 + "px"
 
         // Contexts
@@ -36,13 +34,7 @@ const Renderer = {
 
         this.MainViewport.x = 0
         while(this.MainViewport.x < this.width) {
-            this.vps.length = 0
-            let i = 0
-
             this.MainViewport.draw()
-            while(i < this.vps.length) {
-                this.vps[i++].draw()
-            }
             this.drawColumn(this.MainViewport.x)
             this.MainViewport.x++
 			this.column.fill(255)
@@ -51,7 +43,7 @@ const Renderer = {
         this.bctx.putImageData(this.imageData, 0, 0)
         this.ctx.drawImage(this.buffer, 0, 0)
         this.renderId++
-		ViewportsPool.freeAll()
+		ViewportsPool.clear()
     },
 
     drawColumn(col) {

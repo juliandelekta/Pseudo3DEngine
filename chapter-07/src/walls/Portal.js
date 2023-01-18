@@ -6,6 +6,8 @@ const Portal = () => ({
         this.upper.u1 = this.upper.offU + this.segment.p1.l * this.upper.lengthU
         this.lower.u0 = this.lower.offU + this.segment.p0.l * this.lower.lengthU
         this.lower.u1 = this.lower.offU + this.segment.p1.l * this.lower.lengthU
+
+        this.viewport = null
     },
 
     loadViewport() {
@@ -39,10 +41,9 @@ const Portal = () => ({
         if (!this.viewport) this.loadViewport()
         this.viewport.top    = Math.max(viewport.top,    ~~this.segment.getTopAt(viewport.x))
         this.viewport.bottom = Math.min(viewport.bottom, ~~this.segment.getBottomAt(viewport.x))
-        this.viewport.x = viewport.x
-        Renderer.stackViewport(this.viewport)
-        
+        this.viewport.x = viewport.x        
         this.segment.toScreenSpace(topZ, bottomZ) // Restaura el estado original
+        this.viewport.draw()
     },
 
     drawPlane(texture, viewport, topFactor = 1, bottomFactor = 0) {
@@ -65,7 +66,7 @@ const Portal = () => ({
 
         if (b < 0 || y > Renderer.height) return
 
-        let v = texture.offV + (y - top * topFactor - bottom * bottomFactor) * dv
+        let v = texture.offV + (y - top * topFactor - bottom * bottomFactor - 1) * dv
 
         for (y *= 4; y < b; y+=4, v+=dv) {
             const i = (i0 + (v & (texture.h - 1))) << 2

@@ -6,6 +6,8 @@ const Portal = () => ({
         this.upper.u1 = this.upper.offU + this.segment.p1.l * this.upper.lengthU
         this.lower.u0 = this.lower.offU + this.segment.p0.l * this.lower.lengthU
         this.lower.u1 = this.lower.offU + this.segment.p1.l * this.lower.lengthU
+
+        this.viewport = null
     },
 
     loadViewport() {
@@ -37,12 +39,17 @@ const Portal = () => ({
         )
 
         if (!this.viewport) this.loadViewport()
-        this.viewport.top    = Math.max(viewport.top,    ~~this.segment.getTopAt(viewport.x))
-        this.viewport.bottom = Math.min(viewport.bottom, ~~this.segment.getBottomAt(viewport.x))
-        this.viewport.x = viewport.x
-        Renderer.stackViewport(this.viewport)
 
+        this.viewport.top = this.next.ceiling.z >= viewport.sector.ceiling.z && Camera.pos.z > topZ
+            ? viewport.top
+            : Math.max(viewport.top,    ~~this.segment.getTopAt(viewport.x))
+        this.viewport.bottom = this.next.floor.z <= viewport.sector.floor.z && Camera.pos.z < bottomZ
+            ? viewport.bottom
+            : Math.min(viewport.bottom, ~~this.segment.getBottomAt(viewport.x))
+        this.viewport.x = viewport.x
         this.segment.toScreenSpace(topZ, bottomZ)
+        
+        this.viewport.draw()
     },
 
     drawPlane(texture, viewport, topFactor = 1, bottomFactor = 0) {
@@ -74,15 +81,5 @@ const Portal = () => ({
             Renderer.column[y+1] = texture.data[i+1]
             Renderer.column[y+2] = texture.data[i+2]
         }
-    },
-	
-	extendUp(viewport) {
-		if (this.next.ceiling.z >= viewport.sector.ceiling.z) // Si no hay Step Down
-			this.viewport.top = viewport.top
-	},
-	
-	extendDown(viewport) {
-		if (this.next.floor.z <= viewport.sector.floor.z) // Si no hay Step Up
-			this.viewport.bottom = viewport.bottom
-	}
+    }
 })
