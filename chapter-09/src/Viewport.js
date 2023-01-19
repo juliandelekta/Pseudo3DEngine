@@ -52,7 +52,7 @@ const Viewport = (width) => ({
 				segment.sector.floor.draw(segment.getBottomAt(this.x), this)
 
 			// Wall
-            segment.wall.draw(this)			
+            segment.wall.draw(this)
         }
     }
 })

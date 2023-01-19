@@ -593,22 +593,23 @@ const WallSprite = () => ({
     h: 1, w: 1, // Dimensiones en unidades
 
     init() {
-        const s = Segment(0,0,0,0)
-        this.setAngle = angle => {
-            this.angle = angle
-            const cos = Math.cos(angle) * this.w * .5,
-                sin = Math.sin(angle) * this.w * .5
-            s.p0.x = this.pos.x + sin
-            s.p0.y = this.pos.y - cos
-            s.p1.x = this.pos.x - sin
-            s.p1.y = this.pos.y + cos
-        }
-        this.segment = s
+        this.segment = Segment(0,0,0,0)
         this.setAngle(this.angle)
         this.super = {
             project: this.__proto__.project.bind(this),
             draw: this.__proto__.draw.bind(this)
         }
+    },
+
+    setAngle(angle) {
+        const s = this.segment
+        this.angle = angle
+        const cos = Math.cos(angle) * this.w * .5,
+              sin = Math.sin(angle) * this.w * .5
+        s.p0.x = this.pos.x + sin
+        s.p0.y = this.pos.y - cos
+        s.p1.x = this.pos.x - sin
+        s.p1.y = this.pos.y + cos
     },
 
     project() {

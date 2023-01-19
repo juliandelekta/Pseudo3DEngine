@@ -19,9 +19,9 @@ En la sección *Gameplay* se exploran conceptos relacionados con las mecánicas 
 **Capítulo 7.** [Portals. Viewport Occlusion Buffers. Cross Portal detection](./chapter-07)\
 **Capítulo 8.** [Sector over Sector. Stack Wall. Flat Portal](./chapter-08)\
 **Capítulo 9.** [Slopes](./chapter-09/)\
-**Capítulo 10.** [Thing. Sprite Wall y Sprite Face](./chapter-10/)\
-**Capítulo 11.** Sprite Floor\
-**Capítulo 12.** Sprite Voxel\
+**Capítulo 10.** [Thing. Wall Sprite Wall y Face Sprite](./chapter-10/)\
+**Capítulo 11.** Flat Sprite\
+**Capítulo 12.** Voxel\
 **Capítulo 13.** Animation System\
 **Capítulo 14.** Particle System\
 **Capítulo 15.** Light Maps

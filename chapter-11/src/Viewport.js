@@ -32,10 +32,16 @@ const Viewport = (width) => ({
         }
 
         for (const t of this.sector.visibleThings) {
-            // Si está fuera de los límites del boundary
-            if (this.segment && t.segment.p0.depth > Math.max(this.segment.p0.depth, this.segment.p1.depth)) continue
-            let from = Math.max(t.segment.p0.col >> 4, 0) // floor(col / 16)
-            const to = Math.min(t.segment.p1.col >> 4, this.buckets.length - 1)
+            let from, to
+            if (t.isFlat) {
+                from = t.x0 >> 4
+                to   = t.x1 >> 4
+            } else {
+                // Si está fuera de los límites del boundary
+                if (this.segment && t.segment.p0.depth > Math.max(this.segment.p0.depth, this.segment.p1.depth)) continue
+                from = Math.max(t.segment.p0.col >> 4, 0) // floor(col / 16)
+                to = Math.min(t.segment.p1.col >> 4, this.buckets.length - 1)
+            }
             for (; from <= to; from++)
                 this.buckets[from].push(t)
         }

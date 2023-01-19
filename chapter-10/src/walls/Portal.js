@@ -6,6 +6,8 @@ const Portal = () => ({
         this.upper.u1 = this.upper.offU + this.segment.p1.l * this.upper.lengthU
         this.lower.u0 = this.lower.offU + this.segment.p0.l * this.lower.lengthU
         this.lower.u1 = this.lower.offU + this.segment.p1.l * this.lower.lengthU
+
+        this.viewport = null
     },
 
     loadViewport() {
@@ -18,8 +20,6 @@ const Portal = () => ({
     draw(viewport) {
         const bottomZ = this.segment.bottomZ
         const topZ    = this.segment.topZ
-
-        this.hasStepUp = this.next.floor.z >= bottomZ
 
         // Step UP
         if (this.next.floor.z > bottomZ) {
@@ -39,10 +39,17 @@ const Portal = () => ({
         )
 
         if (!this.viewport) this.loadViewport()
-        this.viewport.top    = Math.max(viewport.top,    ~~this.segment.getTopAt(viewport.x))
-        this.viewport.bottom = Math.min(viewport.bottom, ~~this.segment.getBottomAt(viewport.x))
+
+        this.viewport.top = this.next.ceiling.z >= viewport.sector.ceiling.z && Camera.pos.z > topZ
+            ? viewport.top
+            : Math.max(viewport.top,    ~~this.segment.getTopAt(viewport.x))
+        this.viewport.bottom = this.next.floor.z <= viewport.sector.floor.z && Camera.pos.z < bottomZ
+            ? viewport.bottom
+            : Math.min(viewport.bottom, ~~this.segment.getBottomAt(viewport.x))
         this.viewport.x = viewport.x
         this.segment.toScreenSpace(topZ, bottomZ)
+        
+        this.viewport.draw()
     },
 
     drawPlane(texture, viewport, topFactor = 1, bottomFactor = 0) {
@@ -65,7 +72,7 @@ const Portal = () => ({
 
         if (b < 0 || y > Renderer.height) return
 
-        let v = texture.offV + (y - top * topFactor - bottom * bottomFactor - 1) * dv
+        let v = texture.offV + (y - top * topFactor - bottom * bottomFactor) * dv
 
         for (y *= 4; y < b; y+=4, v+=dv) {
             const i = (i0 + (v & (texture.h - 1))) << 2
@@ -74,15 +81,5 @@ const Portal = () => ({
             Renderer.column[y+1] = texture.data[i+1]
             Renderer.column[y+2] = texture.data[i+2]
         }
-    },
-	
-	extendUp(viewport) {
-		if (this.next.ceiling.z >= viewport.sector.ceiling.z) // Si no hay Step Down
-			this.viewport.top = viewport.top
-	},
-	
-	extendDown(viewport) {
-		if (this.next.floor.z <= viewport.sector.floor.z) // Si no hay Step Up
-			this.viewport.bottom = viewport.bottom
-	}
+    }
 })
