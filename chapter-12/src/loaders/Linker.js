@@ -8,21 +8,35 @@ const Linker = {
 
     linkSector(sector, level) {
         for (const segment of sector.segments) {
-            segment.sector = sector
             if (segment.wall.isPortal)
                 this.linkPortal(segment.wall, level)
+            else if (segment.wall.isStack)
+                this.linkStack(segment.wall, level)
             else
                 this.linkWall(segment.wall)
+            segment.sector = sector
         }
 
         sector.reference = sector.segments[0].p0
+		
+        if (sector.slopeFloor) {
+            this.linkSlope(sector.slopeFloor)
+            sector.slopeFloor.sector = sector
+        } else {
+            this.linkFlat(sector.floor, level, false)
+            sector.floor.sector = sector
+        }
 
-        this.linkTexture(sector.floor.texture)
-        this.linkTexture(sector.ceiling.texture)
+        if (sector.slopeCeil) {
+            this.linkSlope(sector.slopeCeil)
+            sector.slopeCeil.sector = sector
+        } else {
+            this.linkFlat(sector.ceiling, level, true)
+            sector.ceiling.sector = sector
+        }
 
-        sector.floor.sector = sector.ceiling.sector = sector
-
-        sector.subsectors = sector.subsectors.map(x => level.sectors[x])
+        for (const thing of sector.things)
+            this.linkThing(thing)
     },
 
     linkTexture(t) {
@@ -33,36 +47,81 @@ const Linker = {
         })
     },
 
+    linkFlat(flat, level, ceiling = true) {
+        if (flat.next) {
+            if (!level.interfaces[flat.next])
+				level.interfaces[flat.next] = Interface(...flat.next.split("-").map(s => level.sectors[s]))
+			
+			const interface = level.interfaces[flat.next]
+			interface[ceiling ? "addDown" : "addUp"](flat)
+			flat.interface = interface
+			flat.next = ceiling ? interface.upSector : interface.downSector
+        } else
+            this.linkTexture(flat.texture)
+    },
+
     linkWall(wall) {
         TextureLoader.getTexture(wall.texture.name, texture => {
             wall.texture.data = texture.data
             wall.texture.h    = texture.h
             wall.texture.w    = texture.w
 
-            wall.texture.lengthU =  wall.segment.length * 32
+            wall.texture.lengthU = texture.w * wall.segment.length / wall.texture.scaleU
         })
     },
 
     linkPortal(wall, level) {
-        wall.next = level.sectors[wall.next]
         TextureLoader.getTexture(wall.upper.name, texture => {
             wall.upper.data = texture.data
             wall.upper.h    = texture.h
             wall.upper.w    = texture.w
 
-            wall.upper.lengthU = wall.segment.length * 32
+            wall.upper.lengthU = texture.w * wall.segment.length / wall.upper.scaleU
         })
         TextureLoader.getTexture(wall.lower.name, texture => {
             wall.lower.data = texture.data
             wall.lower.h    = texture.h
             wall.lower.w    = texture.w
 
-            wall.lower.lengthU = wall.segment.length * 32
+            wall.lower.lengthU = texture.w * wall.segment.length / wall.lower.scaleU
         })
+        wall.next = level.sectors[wall.next]
+    },
+
+    linkStack(wall, level) {
+        for (const subwall of wall.walls) {
+            if (subwall.isPortal)
+                this.linkPortal(subwall, level)
+            else
+                this.linkWall(subwall)
+
+            subwall.segment = wall.segment
+        }
     },
 
     linkPlayer(player, level) {
         player.sector = level.sectors[player.sector]
+    },
+
+    linkSlope(slope) {
+        this.linkTexture(slope.texture)
+
+        TextureLoader.getTexture(slope.texture.name, texture => {
+            slope.texture.data = texture.data
+            slope.texture.h    = texture.h
+            slope.texture.w    = texture.w
+
+            const p0 = slope.segments[0].p0
+            // Asignación de U y V
+            for (const segment of slope.segments) {
+                segment.p0.u = slope.texture.offU + slope.texture.w * (segment.p0.x - p0.x) / slope.texture.scaleU
+                segment.p1.u = slope.texture.offU + slope.texture.w * (segment.p1.x - p0.x) / slope.texture.scaleU
+                segment.p0.v = slope.texture.offV + slope.texture.h * (segment.p0.y - p0.y) / slope.texture.scaleV
+                segment.p1.v = slope.texture.offV + slope.texture.h * (segment.p1.y - p0.y) / slope.texture.scaleV
+            }
+        })
+
+        this.linkTexture(slope.sidewall)
     },
 
     linkThings(things) {
@@ -104,4 +163,5 @@ const Linker = {
         } else
             thing.texture = thing.thing.texture
     }
+
 }

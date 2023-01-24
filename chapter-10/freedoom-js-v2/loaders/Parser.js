@@ -29,6 +29,7 @@ const Parser = {
                 }
             }
         }
+		
 
         return sector
     },
@@ -84,10 +85,10 @@ const Parser = {
             wall = Portal()
 
             if (info.texture) {
-                wall.down = wall.up = this.parseTexture(info.texture)
+                wall.lower = wall.upper = this.parseTexture(info.texture)
             } else {
-                wall.up   = this.parseTexture(info.up)
-                wall.down = this.parseTexture(info.down)
+                wall.upper = this.parseTexture(info.up)
+                wall.lower = this.parseTexture(info.down)
             }
 
             wall.next = info.next

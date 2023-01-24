@@ -11,7 +11,6 @@ const TextureLoader = {
 
     init() {
         this.ctx = this.canvas.getContext("2d", {willReadFrequently: true})
-        this.textureSet.add("-")
     },
 
     load(packageName, json) {
@@ -59,7 +58,7 @@ const TextureLoader = {
     },
 
     getTexture(name, asyncCall) {
-        if (!this.textureSet.has(name)) console.trace("Texture not loaded: " + name)
+        if (!this.textureSet.has(name)) console.error("Texture not loaded: " + name)
         if (this.textures[name]) {
             asyncCall(this.textures[name])
         } else {

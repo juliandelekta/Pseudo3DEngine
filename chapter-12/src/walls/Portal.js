@@ -65,22 +65,21 @@ const Portal = () => ({
         // Cálculo V
         const top    = s.p0.top    + (s.p1.top    - s.p0.top)    * dx
         const bottom = s.p0.bottom + (s.p1.bottom - s.p0.bottom) * dx
-        const dv = s.height * /*texture.h*/32 / ((bottom - top) * texture.scaleV)
+        const dv = s.height * texture.h / ((bottom - top) * texture.scaleV)
 
         const b = Math.min(bottom, viewport.bottom) * 4
         let y = Math.max(~~top, viewport.top)
 
         if (b < 0 || y > Renderer.height) return
 
-        let v = texture.offV + (y - top * topFactor - bottom * bottomFactor) * dv
+        let v = texture.offV + (y - top * topFactor - bottom * bottomFactor - 1) * dv
 
-        const l = Math.max(0, Math.min(s.sector.light + depth, 1))
         for (y *= 4; y < b; y+=4, v+=dv) {
-            const i = (i0 + (v % texture.h)) << 2
+            const i = (i0 + (v & (texture.h - 1))) << 2
 
-            Renderer.column[y]   = texture.data[i]   * l
-            Renderer.column[y+1] = texture.data[i+1] * l
-            Renderer.column[y+2] = texture.data[i+2] * l
+            Renderer.column[y]   = texture.data[i]
+            Renderer.column[y+1] = texture.data[i+1]
+            Renderer.column[y+2] = texture.data[i+2]
         }
     }
 })

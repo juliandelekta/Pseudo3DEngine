@@ -29,7 +29,7 @@ const Segment = (x0, y0, x1, y1) => ({
         this.p1.toCameraSpace()
     },
 
-    toDepthSpace() {
+    toDepthSpace(byPass = false) {
         this.toCameraSpace()
 		const xp0 = this.p0.xp, yp0 = this.p0.yp,
 			  xp1 = this.p1.xp, yp1 = this.p1.yp;
@@ -57,7 +57,7 @@ const Segment = (x0, y0, x1, y1) => ({
         // Verifica si el segment proyectado está dentro de los límites de la pantalla y el mismo esté orientado hacia la cámara
         return (this.p0.col < Renderer.width) &&
                (this.p1.col >= 0) &&
-               (this.p0.col < this.p1.col)
+               (this.p0.col < this.p1.col) || byPass
 	},
 
     toScreenSpace(topZ, bottomZ) {
@@ -74,10 +74,10 @@ const Segment = (x0, y0, x1, y1) => ({
 		const ijx = this.p1.x - this.p0.x,  ijy = this.p1.y - this.p0.y
 		const ibx = bx - this.p0.x,         iby = by - this.p0.y
 		const iax = ax - this.p0.x,         iay = ay - this.p0.y
-        return  (aby * iax <= abx * iay) &&
-                (ajx * aby <= ajy * abx) &&
-                (ijx * iby <= ijy * ibx) &&
-                (iax * ijy <= iay * ijx)
+        return  (aby * iax < abx * iay) &&
+                (ajx * aby < ajy * abx) &&
+                (ijx * iby < ijy * ibx) &&
+                (iax * ijy < iay * ijx)
     },
 
     // Llena el arreglo depth con la interpolación lineal de depth entre p0 y p1
@@ -91,6 +91,26 @@ const Segment = (x0, y0, x1, y1) => ({
         let d = (from - this.p0.col) * dd + this.p0.depth
         for (let c = from; c <= to; c++, d+=dd)
             depth[c] = d
+    },
+
+    fillTop(top) {
+        const dt = (this.p1.top - this.p0.top) / (this.p1.col - this.p0.col)
+        let from = Math.max(0, ~~(this.p0.col + 1)),
+            to   = Math.min(Renderer.width-1, ~~this.p1.col)
+
+        let t = (from - this.p0.col) * dt + this.p0.top
+        for (let c = from; c <= to; c++, t+=dt)
+            top[c] = t
+    },
+
+    fillBottom(bottom) {
+        const db = (this.p1.bottom - this.p0.bottom) / (this.p1.col - this.p0.col)
+        let from = Math.max(0, ~~(this.p0.col + 1)),
+            to   = Math.min(Renderer.width-1, ~~this.p1.col)
+
+        let b = (from - this.p0.col) * db + this.p0.bottom
+        for (let c = from; c <= to; c++, b+=db)
+            bottom[c] = b
     },
 
     getDepthAt(col) {
