@@ -20,6 +20,7 @@ const Portal = () => ({
     draw(viewport) {
         const bottomZ = this.segment.bottomZ
         const topZ    = this.segment.topZ
+        this.hasStepUp = this.next.floor.z >= bottomZ && Camera.pos.z > this.next.floor.z
 
         // Step UP
         if (this.next.floor.z > bottomZ) {

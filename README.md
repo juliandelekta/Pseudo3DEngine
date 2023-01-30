@@ -22,7 +22,7 @@ En la sección *Gameplay* se exploran conceptos relacionados con las mecánicas 
 **Capítulo 10.** [Thing. Wall Sprite Wall y Face Sprite](./chapter-10/)\
 **Capítulo 11.** [Flat Sprite](./chapter-11)\
 **Capítulo 12.** [Voxel](./chapter-12)\
-**Capítulo 13.** Animation System\
+**Capítulo 13.** [Animation System](./chapter-13)\
 **Capítulo 14.** Particle System\
 **Capítulo 15.** Light Maps
 ### II. Physics Engine

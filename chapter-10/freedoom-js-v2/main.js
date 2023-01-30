@@ -107,8 +107,10 @@ function addThings() {
         const definition = ResourceManager.things[info.thing]
         if (!definition) console.log(info.thing)
         let thing = FaceSprite()
-        if (definition.directional)
+        if (definition.directional) {
             thing.angle = (info.angle || 0) * Math.PI / 180
+            thing.directional = true
+        }
         thing.thing = definition
         thing.pos.x = info.x
         thing.pos.y = info.y
@@ -127,9 +129,10 @@ function addThing(thing) {
     sector.things.push(thing)
     if (thing.thing.directional) {
         thing.textures = thing.thing.textures
-        thing.texture = thing.textures[0]
-    }else 
-        thing.texture = {...thing.thing.texture}
+        TextureLoader.getTextureWithFirst(thing.thing.texture + 1, texture => thing.texture = texture)
+    } else {
+        TextureLoader.getTextureWithFirst(thing.thing.texture, texture => {thing.texture = texture})
+    }
     thing.w = thing.texture.w / 32
     thing.h = thing.texture.h / 32
     thing.pos.z = sector.floor.z + thing.h / 2

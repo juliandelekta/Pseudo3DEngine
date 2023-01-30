@@ -55,27 +55,6 @@ ResourceManager.loadThings(
 ```
 En el fragmento definimos dos Things: un Face Sprite llamado "statue" y un Wall Sprite llamado "alga". Distinguimos el tipo de Thing mediante el parámetro "type".
 
-```javascript
-const Linker = {
-   . . .
-    linkThings(things) {
-        for (const name in things) {
-            const thing = things[name]
-            thing.texture = {name: thing.texture}
-            this.linkThingTexture(thing.texture)
-        }
-    },
-
-    linkThingTexture(texture) {
-        TextureLoader.getTexture(texture.name, info => {
-            texture.data = info.data
-            texture.h    = info.h
-            texture.w    = info.w
-        })
-    }
-}
-```
-
 En el diseño del nivel debemos especificar dónde se ubican las instancias de los Sprites dentro de un sector. El siguiente fragmento en toml muestra cómo se indica:
 ```toml
 [[sectors]]
@@ -182,6 +161,19 @@ const Parser = {
         thing.init()
 
         return thing
+    }
+}
+```
+
+```javascript
+const Linker = {
+   . . .
+    linkThings(things) {
+        for (const name in things) {
+            const thing = things[name]
+            thing.texture = {name: thing.texture}
+            TextureLoader.getTexture(thing.texture, texture => {thing.texture = texture})
+        }
     }
 }
 ```
@@ -503,8 +495,10 @@ const Parser = {
     parseThing(info) {
         const definition = ResourceManager.things[info.thing]
         let thing = FaceSprite()
-        if (definition.directional)
+        if (definition.directional) {
             thing.angle = (info.angle || 0) * Math.PI / 180
+            thing.directional = true
+        }
         . . .
     }
 }
@@ -518,21 +512,22 @@ const Linker = {
         for (const name in things) {
             const thing = things[name]
             if (thing.directional) {
-                thing.textures = new Array(8).fill(0).map((_, i) => ({name: thing.texture + (i+1)}))
-                thing.textures.forEach(this.linkThingTexture)
-            } else {
-                thing.texture = {name: thing.texture}
-                this.linkThingTexture(thing.texture)
+                thing.textures = new Array(8)
+                for (let i = 0; i < 8; i++)
+                    TextureLoader.getTexture(thing.texture + (i+1), texture => {
+                        thing.textures[i] = texture
+                    })
             }
         }
     },
 
     linkThing(thing) {
-        if (thing.thing.directional) { // Actualizamos las referencias e indicamos la textura inicial
+        if (thing.thing.directional) {
             thing.textures = thing.thing.textures
-            thing.texture = thing.textures[0]
-        } else
-            thing.texture = thing.thing.texture
+            TextureLoader.getTexture(thing.thing.texture + 1, texture => thing.texture = texture)
+        } else {
+            TextureLoader.getTexture(thing.thing.texture, texture => thing.texture = texture)
+        }
     }
 }
 ```
@@ -551,7 +546,7 @@ const FaceSprite = () => ({
     . . .
     project() {
         if (this.super.project()) {
-            if (this.thing.directional) {
+            if (this.directional) {
                 const dx = Camera.pos.x - this.pos.x
                 const dy = Camera.pos.y - this.pos.y
                 const angle = (20 * Math.PI + Math.atan2(dy, dx) + this.angle - Math.PI * .125) % (2 * Math.PI)
@@ -658,8 +653,10 @@ const Parser = {
                 break
             default:
                 thing = FaceSprite()
-                if (definition.directional)
+                if (definition.directional) {
                     thing.angle = (info.angle || 0) * Math.PI / 180
+                    thing.directional = true
+                }
                 break
         }
         . . .
@@ -780,24 +777,24 @@ Una solución simple es tener un arreglo auxiliar **first** que nos indique cuá
 
 ![first](./img/first.png)
 
-Este arreglo debe almacenarse junto con la información de la textura. Entonces, en el Linker:
+Este arreglo debe almacenarse junto con la información de la textura. Entonces, en el TextureLoader creamos una nueva función para adquirir la textura junto con su arreglo first:
 ```javascript
-const Linker = {
+const TextureLoader = {
    . . .
-    linkThingTexture(texture) {
-        TextureLoader.getTexture(texture.name, info => {
-            . . .
-            // Completa el arreglo que indica el primer píxel no transparente
-            texture.first = new Uint8Array(texture.w)
-            for (let x = 0; x < info.w; x++) {
-                let y = 0
-                //                                       Componente alfa de la textura
-                //                                                    V
-                while (y < info.h && info.data[(x * info.h + y) * 4 + 3] === 0)
-                    y++
-
-                texture.first[x] = y
+    getTextureWithFirst(name, asyncCall) {
+        this.getTexture(name, texture => {
+            if (!texture.first) {
+                texture.first = new Uint8Array(texture.w)
+                for (let x = 0; x < texture.w; x++) {
+                    let y = 0
+    
+                    while (y < texture.h && texture.data[(x * texture.h + y) * 4 + 3] === 0)
+                        y++
+    
+                        texture.first[x] = y
+                }
             }
+            asyncCall(texture)
         })
     }
 }

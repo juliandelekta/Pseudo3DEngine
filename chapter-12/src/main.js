@@ -44,12 +44,13 @@ const FPS = {
     update(val) {
         this.values[this.i] = val
         this.i = (this.i + 1) & 3
-        this.element.innerText = ( (
+        this.element.innerText = Math.min(...this.values).toFixed(2) + "FPS"
+        /*this.element.innerText = ( (
             this.values[0] +
             this.values[1] +
             this.values[2] +
             this.values[3]
-        ) * .25 ).toFixed(2) + "FPS"
+        ) * .25 ).toFixed(2) + "FPS"*/
     }
 }
 

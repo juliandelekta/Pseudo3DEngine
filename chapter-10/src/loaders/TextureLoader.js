@@ -69,5 +69,22 @@ const TextureLoader = {
                 this.queues[name] = [asyncCall]
             }
         }
+    },
+
+    getTextureWithFirst(name, asyncCall) {
+        this.getTexture(name, texture => {
+            if (!texture.first) {
+                texture.first = new Uint8Array(texture.w)
+                for (let x = 0; x < texture.w; x++) {
+                    let y = 0
+    
+                    while (y < texture.h && texture.data[(x * texture.h + y) * 4 + 3] === 0)
+                        y++
+    
+                        texture.first[x] = y
+                }
+            }
+            asyncCall(texture)
+        })
     }
 }

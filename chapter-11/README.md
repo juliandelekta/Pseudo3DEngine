@@ -20,9 +20,6 @@ const FlatSprite = () => ({
     project() {
     },
 
-    drawBefore(thing) {
-    },
-
     draw(viewport) {
     }
 })
@@ -82,16 +79,15 @@ const Parser = {
 
 ## Configuración Inicial
 
-El Flat Sprite requiere cuatro puntos que indican cada una de las esquinas. En la función `updateShape`, rotamos los cuatro puntos según la matriz de rotación para el ángulo ingresado teniendo como centro la posición del Sprite. Esta función se debe llamar cada vez que modificamos el ángulo, la posición o las dimensiones del Sprite, para que la proyección sea correcta.
+El Flat Sprite requiere cuatro puntos que indican cada una de las esquinas. Creamos un objeto que represente esta proyección: `Rectangle`.  En la función `updateShape`, rotamos los cuatro puntos según la matriz de rotación para el ángulo ingresado teniendo como centro la posición del Sprite. Esta función se debe llamar cada vez que modificamos el ángulo, la posición o las dimensiones del Sprite, para que la proyección sea correcta:
 
 ```javascript
-const FlatSprite = () => ({
-    . . .
-    init() {
+const Rectangle = {
+    initRectangle() {
         [this.p0, this.p1, this.p2, this.p3] = new Array(4).fill(0).map(Point)
         this.updateShape()
     },
-    
+
     updateShape() {
         const cosh2 = Math.cos(this.angle) * this.h * .5, sinh2 = Math.sin(this.angle) * this.h * .5,
               cosw2 = Math.cos(this.angle) * this.w * .5, sinw2 = Math.sin(this.angle) * this.w * .5
@@ -100,19 +96,30 @@ const FlatSprite = () => ({
         this.p1.x = sx + cosw2 + sinh2; this.p1.y = sy + sinw2 - cosh2;
         this.p2.x = sx - cosw2 - sinh2; this.p2.y = sy - sinw2 + cosh2;
         this.p3.x = sx - cosw2 + sinh2; this.p3.y = sy - sinw2 - cosh2;
-    },
+    }
+}
+```
+
+FlatSprite debe heredar de Rectangle:
+
+
+```javascript
+const FlatSprite = () => ({
     . . .
+    init() {
+        this.initRectangle()
+    },
+    
+    . . .
+    __proto__: Rectangle
 })
 ```
 ## Proyección
 Durante su proyección, el Sprite proyecta los cuatros puntos en el Camera Space, luego aplica Near Plane Culling y los proyecta en el Depth Space. Luego calcula sus márgenes horizontales (x0,x1) y verticales (y0,y1), y almacena el valor del Depth del punto más próximo a la cámara y del más lejano.
 ```javascript
-const FlatSprite = () => ({
+const Rectangle = {
     . . .
-    project() {
-        // Verifica si la cara es visible
-        if (this.pos.z > Camera.pos.z && !this.ceiling ||
-            this.pos.z <= Camera.pos.z && !this.floor) return false
+    projectPoints() {
         const {p0, p1, p2, p3} = this
 
         // Camera Space
@@ -157,6 +164,22 @@ const FlatSprite = () => ({
 
     },
     . . .
+}
+```
+```javascript
+const FlatSprite = () => ({
+    . . .
+    project() {
+        // Verifica si la cara es visible
+        if (this.pos.z > Camera.pos.z && !this.ceiling ||
+            this.pos.z <= Camera.pos.z && !this.floor) return false
+
+        if (!this.projectPoints()) return false
+
+        if (this.y0 >= Renderer.height || this.y1 < 0) return false
+		return true
+    },
+    . . .
 })
 ```
 ## Renderización
@@ -166,9 +189,9 @@ Para saber qué Sprite se debería dibujar primero, emplemos la función `drawBe
 - **Flat vs. Flat**: verificamos primero quién está delante comparando los límites guardados en *dmin* y *dmax*. Si están superpuestos, debemos dibujar primero el que esté más lejos de la cámara, midiendo la distancia en el eje Z.
 - **Flat vs. Segment**: similar al anterior, pero comparamos *dmin* y *dmax* contra el valor de Depth del segment, evaluado en el centro del Flat.
 
-De esta forma completamos en Flat Sprite:
+De esta forma completamos en Rectangle:
 ```javascript
-const FlatSprite = () => ({
+const Rectangle = {
     . . .
     drawBefore(thing) {
         if (thing.isFlat) {
@@ -183,7 +206,7 @@ const FlatSprite = () => ({
         return Math.abs(this.pos.z - Camera.pos.z) > Math.abs(thing.pos.z - Camera.pos.z)
     },
     . . .
-})
+}
 ```
 
 Actualizamos el de Segment Sprite:

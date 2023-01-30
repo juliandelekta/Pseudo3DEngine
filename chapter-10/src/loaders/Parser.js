@@ -163,8 +163,10 @@ const Parser = {
                 break
             default:
                 thing = FaceSprite()
-                if (definition.directional)
+                if (definition.directional) {
                     thing.angle = (info.angle || 0) * Math.PI / 180
+                    thing.directional = true
+                }
                 break
         }
         thing.thing = definition

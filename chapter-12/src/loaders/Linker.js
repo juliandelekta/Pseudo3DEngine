@@ -128,40 +128,22 @@ const Linker = {
         for (const name in things) {
             const thing = things[name]
             if (thing.directional) {
-                thing.textures = new Array(8).fill(0).map((_, i) => ({name: thing.texture + (i+1)}))
-                thing.textures.forEach(this.linkThingTexture)
-            } else {
-                thing.texture = {name: thing.texture}
-                this.linkThingTexture(thing.texture)
+                thing.textures = new Array(8)
+                for (let i = 0; i < 8; i++)
+                    TextureLoader.getTextureWithFirst(thing.texture + (i+1), texture => {
+                        thing.textures[i] = texture
+                    })
             }
         }
-    },
-
-    linkThingTexture(texture) {
-        TextureLoader.getTexture(texture.name, info => {
-            texture.data = info.data
-            texture.h    = info.h
-            texture.w    = info.w
-
-            // Completa el arreglo que indica el primer píxel no transparente
-            texture.first = new Uint8Array(texture.w)
-            for (let x = 0; x < info.w; x++) {
-                let y = 0
-
-                while (y < info.h && info.data[(x * info.h + y) * 4 + 3] === 0)
-                    y++
-
-                texture.first[x] = y
-            }
-        })
     },
 
     linkThing(thing) {
         if (thing.thing.directional) {
             thing.textures = thing.thing.textures
-            thing.texture = thing.textures[0]
-        } else
-            thing.texture = thing.thing.texture
+            TextureLoader.getTextureWithFirst(thing.thing.texture + 1, texture => thing.texture = texture)
+        } else {
+            TextureLoader.getTextureWithFirst(thing.thing.texture, texture => thing.texture = texture)
+        }
     }
 
 }

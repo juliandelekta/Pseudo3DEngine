@@ -20,7 +20,7 @@ const FaceSprite = () => ({
 
     project() {
         if (this.super.project()) {
-            if (this.thing.directional) {
+            if (this.directional) {
                 const dx = Camera.pos.x - this.pos.x
                 const dy = Camera.pos.y - this.pos.y
                 const angle = (20 * Math.PI + Math.atan2(dy, dx) + this.angle - Math.PI * .125) % (2 * Math.PI)

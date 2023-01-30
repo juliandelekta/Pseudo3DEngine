@@ -351,7 +351,6 @@ const Voxel = () => ({
 	draw(viewport) {
         if (this.x1 < viewport.x || this.x0 > viewport.x) return
 		if (viewport.depth[viewport.x] > this.dmax) return
-        const texture = this.texture
         const cos = Math.cos(this.angle), sin = Math.sin(this.angle)
         const deltaIndexZ = this.box.w * this.box.h, deltaIndexY = this.box.w
 

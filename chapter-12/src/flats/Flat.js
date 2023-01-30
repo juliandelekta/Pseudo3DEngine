@@ -32,14 +32,15 @@ const Flat = {
     drawParallax(viewport) {
         const texture = this.texture
         const w = texture.w / (texture.scaleU * 2 * Math.PI)
-		const h = texture.h / texture.scaleV
+		const h = texture.h / texture.scaleV,
+            dv = texture.h / Renderer.height
 
         const angle = Camera.angle + (viewport.x/Renderer.width - 0.5) * Camera.FOV
         const u = (angle * w) & (texture.w - 1)
 
-        for (let y = this.y0; y < this.y1; y++) {
-            const v = h - (Camera.center - y)
-
+        let v = h - (Camera.center - this.y0) * dv
+        
+        for (let y = this.y0; y < this.y1; y++, v+=dv) {
             const Y = y << 2
             const i = (u * texture.h + (v & (texture.h - 1))) << 2
 
