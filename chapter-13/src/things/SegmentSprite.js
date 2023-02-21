@@ -39,7 +39,7 @@ const SegmentSprite = {
         }
         const b = Math.min(bottom, clippingBottom) * 4
 
-        let y = Math.max(~~(top + texture.first[u] / dv), viewport.top)
+        let y = Math.max(~~(top + texture.first[u] / dv) + 1, viewport.top)
 
         if (b < 0 || y > Renderer.height || y << 2 > b) return
 

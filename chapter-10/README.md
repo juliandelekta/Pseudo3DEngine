@@ -349,7 +349,7 @@ const SegmentSprite = {
         const dv = texture.h / (bottom - top)
 
         const b = Math.min(bottom, viewport.bottom) * 4
-        let y = Math.max(~~top, viewport.top)
+        let y = Math.max(~~top + 1, viewport.top)
 
         if (b < 0 || y > Renderer.height) return
 
@@ -808,7 +808,7 @@ const SegmentSprite = {
         const dv = texture.h / (bottom - top)
 
         const b = Math.min(bottom, viewport.bottom) * 4
-        let y = Math.max(~~(top + texture.first[u] / dv), viewport.top)
+        let y = Math.max(~~(top + texture.first[u] / dv) + 1, viewport.top)
         . . .
     }
 }

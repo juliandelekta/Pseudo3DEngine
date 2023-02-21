@@ -12,7 +12,7 @@ const SegmentSprite = {
     },
 
     drawBefore(thing) {
-        if (thing.isFlat) {
+        if (thing.isFlat || thing.isVoxel || thing.isEmitter) {
             if (thing.x0 > this.segment.p1.col || thing.x1 < this.segment.p0.col) return true
             const depth = this.segment.getDepthAt((thing.x0 + thing.x1) * .5)
             if (thing.dmax < depth) return false
