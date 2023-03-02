@@ -23,8 +23,8 @@ En la sección *Gameplay* se exploran conceptos relacionados con las mecánicas 
 **Capítulo 11.** [Flat Sprite](./chapter-11)\
 **Capítulo 12.** [Voxel](./chapter-12)\
 **Capítulo 13.** [Animation System](./chapter-13)\
-**Capítulo 14.** Particle System\
-**Capítulo 15.** Light Maps
+**Capítulo 14.** [Particle System](./chapter-14)\
+**Capítulo 15.** [Light Maps](./chapter-15)
 ### II. Physics Engine
 **Capítulo 16.** Model\
 **Capítulo 17.** Collision Detection
