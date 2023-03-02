@@ -3,7 +3,6 @@
 
 Referencias:
 https://www.flipcode.com/archives/Light_Mapping_Theory_and_Implementation.shtml
-http://www.cppblog.com/zmj/archive/2008/08/26/60039.html
 
 
 
@@ -113,7 +112,7 @@ const Lightmap = {
 
 La forma de un Sector se considera poligonal y se encuentra definida por los Segments que lo componen. De igual manera, un Flat sigue esta forma poligonal, pero el Lightmap es rectangular. Por ello, debemos definir un Lightmap que abarque la totalidad del polígono.
 
-![Flat Lightmap](/img/flat-lightmap.png)
+![Flat Lightmap](./img/flat-lightmap.png)
 
 Como puede verse en la figura, debemos tomar los extremos verticales y horizontales.
 
@@ -375,7 +374,7 @@ const triangle_t = (p0, p1, p2) => {
 
 `triangle_t` es un triángulo 3D también denominado polígono que se construye a partir de tres puntos (p0,p1,p2). La siguinte imagen ilustra cómo se eligen los vectores U y V
 
-![Triangle](/img/triangle.png)
+![Triangle](./img/triangle.png)
 
 Ahora podemos crear la función `createLightedSector`:
 
@@ -464,7 +463,7 @@ Como puede verse en el framento de código, las Slopes se componen dos triángul
 
 Antes de pasar al cálculo del Lightmap, debemos entender cómo la textura del Lightmap mapea a una posición 3D. Cada vez que nos refiramos a píxel (o texel) del Lightmap, estamos refiriéndonos al centro del píxel.
 
-![Centro del Píxel](/img/pixel-center.png)
+![Centro del Píxel](./img/pixel-center.png)
 
 ### Baking - Algoritmo
 
@@ -948,7 +947,7 @@ Si pretendemos renderizar el lightmap como hacíamos con la textura vamos a visu
 
 La siguiente figura muestra cómo funciona la interpolación:
 
-![Bilinear Interpolation](/img/bilinear_interpolation.png)
+![Bilinear Interpolation](./img/bilinear_interpolation.png)
 
 Supongamos que nosotros queremos saber qué valor corresponde en el punto P cuyas coordenadas son U y V reales. Q11, Q12, Q21 y Q22 representan los valores en el centro del Texel de los vecinos más cercanos. Para acceder a las coordenadas de estos valores aplicamos la función `floor` en U y V. De esta forma:
 
@@ -1153,7 +1152,7 @@ const Lightmap = {
 }
 ```
 
-Dividimos el problema en tres partes **UV Mapping**, **Lightmap Map** y **Render**
+Dividimos el problema en tres partes [**UV Mapping**](#uv-mapping), [**Lightmap Map**](#lightmap-map) y [**Render**](#render)
 
 #### UV Mapping
 
@@ -1451,11 +1450,11 @@ const Parser = {
 
 Luego del largo recorrido, el resultado obtenido es el siguiente:
 
-![Captua 1](/img/captura1.png)
+![Captua 1](./img/captura1.png)
 
-![Captua 2](/img/captura2.png)
+![Captua 2](./img/captura2.png)
 
-![Captua 3](/img/captura3.png)
+![Captua 3](./img/captura3.png)
 
 Si se reduce el tamaño de Texel del Lightmap, se mejora la definición de las sombras, a costa de: mayor consumo de memoria y mayor tiempo de Baking. Afortunadamente, no causa un detrimento en la performance en tiempo de ejecución.
 
