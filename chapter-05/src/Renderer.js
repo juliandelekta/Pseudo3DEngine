@@ -25,6 +25,7 @@ const Renderer = {
 
         // Viewport
         this.MainViewport = Viewport(this.width)
+
     },
 
     draw() {

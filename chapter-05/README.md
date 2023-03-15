@@ -272,8 +272,8 @@ El resultado debe verse similar a:
 ![flats](./img/flats.png)
 
 ## Parallax
-En cuanto a escenas al exterior refiere, necesitamos emplear una textura que aparente estar en la lejanía. Para esto se supone que se encuentra en el infinito, lo que implica que aunque uno se intente acercar, el fondo siempre parece distante. A este efecto lo llamamos **parallax**.\
-En un Engine 3D tradicional, esto se logra con una [Skybox](https://en.wikipedia.org/wiki/Skybox_(video_games)). Nosotros, simplemente, dibujaremos la textura sin proyección 3D.\
+Si nuestro mapa contiene sectores al aire libre es posible que querramos mostrar un cielo o montañas que nos rodean y den la sensación adecuada. Para lograr este efecto, necesitamos que la textura de nuestro fondo aparente estar en la lejanía. Se supone que se encuentra estática en un lugar muy lejano e inalcanzable, lo que implica que aunque uno se intente acercar el fondo siempre parece distante. A este efecto lo llamamos **parallax**.\
+En un Engine 3D tradicional, esto se logra con una [Skybox](https://en.wikipedia.org/wiki/Skybox_(video_games)). Nosotros, simplemente, dibujaremos la textura con una transformación que garantice el efecto visual.\
 Partimos teniendo una textura dentro de nuestro paquete que represente el cielo. La asignamos en el archivo de diseño a nuestro ceiling junto con una nueva propiedad booleana: **parallax**.
 
 ```javascript
@@ -296,30 +296,105 @@ parseCeiling(info) {
 },
 . . .
 ```
-Para la componente U solo necesitamos saber la dirección de la columna que estamos dibujando. La idea es curvar la textura en una circunferencia alrededor del nivel. De esta forma, 0° es la columna 0 de la textura, 180° la mitad y cercano a 360° la última columna.\
-Por otro lado, la componente V depende de la fila que se está dibujando.\
-De esta forma creamos una nueva función en `Flat`:
+
+Ahora empecemos con las matemáticas. Dijimos que la textura nos debe rodear, es natural, entonces, que pensemos en curvar la textura como en un círculo de radio **r** centrado en la posición de la cámara. En el *World Space* se vería como: 
+
+![Parallax World Space](./img/parallax-world.png)
+
+Recordando la Transformación de World Space a Camera Space el Círculo planteado se transforma en una elipse. Geométricamente, un elipse posee un semieje mayor (*a*) al cual lo alineamos con el eje X y un semieje menor (*b*) alineado con el eje Y. Debido a que tenemos un FOV variable, en el Camera Space escalamos el eje X. De esta forma, `b = r` debido a que no se escala en Y y `a = r * Camera.FOVRelation`.
+
+Gráficamente, el *Camera Space* se vería como:
+
+![Parallax World Space](./img/parallax-camera.png)
+
+Como puede verse en la anterior figura, solo vamos a considerar la porción del eclipse que esté por delante del near plane.
+
+La ecuación que define una elipse por medio de sus semiejes es:
+
+![Ecuación Elipse](./img/ellipse-eq.png)
+
+El algoritmo de renderización universal del Engine consiste en renderizar columna por columna de una textura. Siendo que nuestra textura de parallax se encuentra muy lejana, necesitamos saber para cada columna de pantalla que coordenada U corresponde. Como acabamos de ver, la ecuación de una Elipse consta de dos variables: *x* e *y* que son imposibles de despejar a partir de una única entrada (*col*). Afortunadamente, existe una relación implícita entre *x* e *y* que nos permite parametrizar la elipse empleando una única variable **t**:
+
+```
+x = a * cos(t) = r * FOVRel * cos(t)
+y = b * sin(t) = r * sin(t)
+```
+
+Para la transformación del *Camera Space* al *Depth Space* recurrimos a las ecuaciones de `col` y `depth`, reemplazando X e Y, por las ecuaciones parametrizadas de nuestra elipse:
+
+![Parallax Depth Space](./img/parallax-depth.png)
+
+Para obtener *t* en función de *col* simplemente debemos despejar:
+
+![t función col](./img/t-col.png)
+
+Podemos obtener *depth* inyectando el valor obtenido de *t* a partir de *col*. Con esta coordenada, ya podemos pasar al *Screen Space*:
+
+```
+screenY = center - (Z - cameraZ) * dp * depth
+```
+
+¿Qué valor de Z corresponde? Para una Wall, el bottomZ y topZ coinciden con la coordenada Z del suelo y del techo, respectivamente. Pero para un Parallax, vamos a considerar que el bottomZ coincide con la coordenada Z de la cámara y que el topZ sea la cameraZ más una altura definida por el usuario en el scaleV de la textura. De esta forma:
+
+```
+top = center - scaleV * dp * depth
+bottom = center
+```
+
+Ya tenemos toda la información necesaria para calcular las coordenadas U y V de la textura del Parallax, para cada píxel en pantalla.
+
+La textura está plegada formando un círculo alrededor de la cámara. Es evidente que existe un mapeo entre el ángulo de dirección de la cámara y la coordenada horizontal (U) de la textura. Si observamos bien en la función `t(col)`, empleamos un arcotangente que nos retorna un ángulo. Es decir, que tenemos el ángulo de cada columna en pantalla que debemos mapear con U, de la siguiente forma:
+
+```
+angle = Camera.angle + t(col)
+U = angle/2PI  *  Texture.w/scaleU 
+```
+
+Realizar los cálculos trigonométricos cada vez que queremos dibujar una única columna del parallax, es bastante costoso para la CPU. La solución más básica es crear un *Lookup Table* que almacene los valores precalculados de `dp * depth` para cada columna de la pantalla.
+
+En `Camera`, agregamos las lookup tables, una que nos va a servir para la componente U y otra para V:
+
+```javascript
+const Camera = {
+    . . .
+    setFOV(FOV) {
+        . . .
+        // Lookup Parallax
+        this.parallaxU = new Array(Renderer.width).fill(0).map((_,col) => Math.atan2(this.FOVRelation * Renderer.width, Renderer.width - col * 2))
+        this.parallaxV = this.parallaxU.map(col => this.dp / Math.sin(col))
+        . . .
+    },
+    . . .
+}
+```
+
+Las calculamos en la función `setFOV` debido a que conviene crearlos cada vez que cambia el FOV. La función `Math.atan2(y, x)` calcula en arcotangente y nos garantiza un resultado aun cuando `x=0`. `parallaxU` nos da el valor del ángulo en función de la columna. `parallaxV` es simplemente `dp * depth`.
+
+Por último creamos la función `drawParallax` en `Flat`:
+
 ```javascript
 const Flat = {
   . . .
   drawParallax(viewport) {
         const texture = this.texture
         const w = texture.w / (texture.scaleU * 2 * Math.PI)
-		const h = texture.h / texture.scaleV,
-            dv = texture.h / Renderer.height
 
-        const angle = Camera.angle + (viewport.x/Renderer.width - 0.5) * Camera.FOV
-        const u = (angle * w) & (texture.w - 1)
+        const angle = Camera.angle + Camera.parallaxU[viewport.x]
+        const i0 = ((angle * w) & (texture.w - 1)) * texture.h
 
-        let v = h - (Camera.center - this.y0) * dv
-        
-        for (let y = this.y0; y < this.y1; y++, v+=dv) {
-            const Y = y << 2
-            const i = (u * texture.h + (v & (texture.h - 1))) << 2
+        const top = Camera.center - texture.scaleV * Camera.parallaxV[viewport.x]
+        let y = Math.max(~~top, viewport.top)
+        const b = Math.min(Camera.center, viewport.bottom) << 2
+        const dv = texture.h / (Camera.center - top)
 
-            Renderer.column[Y]   = texture.data[i];
-            Renderer.column[Y+1] = texture.data[i+1];
-            Renderer.column[Y+2] = texture.data[i+2];
+        let v = (y - top) * dv
+
+        for (y <<= 2; y < b; y+=4, v+=dv) {
+            const i = (i0 + (v & (texture.h - 1))) << 2
+
+            Renderer.column[y]   = texture.data[i]
+            Renderer.column[y+1] = texture.data[i+1]
+            Renderer.column[y+2] = texture.data[i+2]
         }
     }
 

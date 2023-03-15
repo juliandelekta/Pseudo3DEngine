@@ -20,6 +20,11 @@ const Camera = {
         this.tanFOV = Math.tan(FOV / 2)
         this.FOVRelation = 1 / this.tanFOV
         this.dp = (Renderer.width / 2) / this.tanFOV
+
+        // Lookup Parallax
+        this.parallaxU = new Array(Renderer.width).fill(0).map((_,col) => Math.atan2(this.FOVRelation * Renderer.width, Renderer.width - col * 2))
+        this.parallaxV = this.parallaxU.map(col => this.dp / Math.sin(col))
+
         this.updateVectors()
     },
 
